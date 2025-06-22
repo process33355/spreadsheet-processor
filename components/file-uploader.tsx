@@ -87,7 +87,7 @@ export function FileUploader({ onFilesUpload, currentFiles, maxFiles = 12, maxTo
   }
 
   return (
-    <Card>
+    <Card className="bg-blue-50">
       <CardHeader>
         <CardTitle>Upload Spreadsheets</CardTitle>
         <CardDescription>
@@ -103,7 +103,7 @@ export function FileUploader({ onFilesUpload, currentFiles, maxFiles = 12, maxTo
         )}
 
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors mb-4 ${
+          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors mb-4 bg-white ${
             isDragging ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
           }`}
           onDragOver={handleDragOver}
@@ -125,7 +125,7 @@ export function FileUploader({ onFilesUpload, currentFiles, maxFiles = 12, maxTo
         </div>
 
         {currentFiles.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4 bg-white rounded-lg p-4">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-medium">
                 Uploaded Files ({currentFiles.length}/{maxFiles})
@@ -159,7 +159,7 @@ export function FileUploader({ onFilesUpload, currentFiles, maxFiles = 12, maxTo
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => fileInputRef.current?.click()}>
+              <Button variant="outline" className="w-40" onClick={() => fileInputRef.current?.click()}>
                 Add More Files
               </Button>
               <Button

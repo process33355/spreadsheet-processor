@@ -111,7 +111,7 @@ export function PresetManager({
   }
 
   return (
-    <Card>
+    <Card className="bg-blue-50">
       <CardHeader>
         <CardTitle>Presets</CardTitle>
         <CardDescription>Save and load data processing configurations</CardDescription>
@@ -128,35 +128,36 @@ export function PresetManager({
             </Alert>
           )}
 
-          <div className="flex gap-2">
-            <Select value={activePreset.id} onValueChange={onLoadPreset}>
-              <SelectTrigger className="flex-1">
-                <SelectValue placeholder="Select a preset" />
-              </SelectTrigger>
-              <SelectContent>
-                {presets.map((preset) => (
-                  <SelectItem key={preset.id} value={preset.id}>
-                    {preset.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {activePreset.id !== "default" && (
-              <Button variant="outline" size="icon" onClick={() => handleDeletePreset(activePreset.id)}>
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
+          <div className="flex gap-2 items-center">
+            <div className="w-fit flex gap-2 items-center">
+              <Select value={activePreset.id} onValueChange={onLoadPreset}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Select a preset" />
+                </SelectTrigger>
+                <SelectContent>
+                  {presets.map((preset) => (
+                    <SelectItem key={preset.id} value={preset.id}>
+                      {preset.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {activePreset.id !== "default" && (
+                <Button variant="outline" size="icon" className="shrink-0" onClick={() => handleDeletePreset(activePreset.id)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex gap-2">
             {activePreset.id !== "default" ? (
-              <Button variant="outline" className="flex-1" onClick={handleSaveExistingPreset}>
+              <Button variant="outline" className="w-40" onClick={handleSaveExistingPreset}>
                 <Save className="h-4 w-4 mr-2" />
                 Update Preset
               </Button>
             ) : (
-              <Button variant="outline" className="flex-1" disabled>
+              <Button variant="outline" className="w-40" disabled>
                 <Save className="h-4 w-4 mr-2" />
                 Update Preset
               </Button>

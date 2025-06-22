@@ -57,7 +57,7 @@ export function TemplateFillingPanel({
           <div className="grid gap-2">
             <Label htmlFor="template-select">Select Template</Label>
             <Select value={templateMapping?.templateId || "none"} onValueChange={handleTemplateChange}>
-              <SelectTrigger id="template-select">
+              <SelectTrigger id="template-select" className="w-40">
                 <SelectValue placeholder="Select a template" />
               </SelectTrigger>
               <SelectContent>
