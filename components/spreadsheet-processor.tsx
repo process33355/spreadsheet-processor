@@ -920,6 +920,39 @@ export function SpreadsheetProcessor() {
     }
   }
 
+  const handleImportPresets = (importedPresets: Preset[]) => {
+    // Add a basic migration for presets from older versions
+    const sanitizedPresets = importedPresets.map((preset: any) => ({
+      ...preset,
+      id: preset.id ?? `preset_${Date.now()}`,
+      name: preset.name ?? "Untitled Preset",
+      headerRow: preset.headerRow ?? 0,
+      selectedColumns: preset.selectedColumns ?? [],
+      filters: preset.filters ?? [],
+      transformations: preset.transformations ?? [],
+      includeSourceFileColumn: preset.includeSourceFileColumn ?? true,
+      templateMapping: preset.templateMapping ?? null,
+    }))
+
+    setPresets(sanitizedPresets)
+
+    // Set the first imported preset as active, or default if the file is empty
+    if (sanitizedPresets.length > 0) {
+      setActivePreset(sanitizedPresets[0])
+    } else {
+      setActivePreset({
+        id: "default",
+        name: "Default Preset",
+        headerRow: 0,
+        selectedColumns: allColumns,
+        filters: [],
+        transformations: [],
+        includeSourceFileColumn: true,
+        templateMapping: null,
+      })
+    }
+  }
+
   const handleReset = () => {
     setInputFiles([])
     setProcessedData([])
@@ -1235,6 +1268,7 @@ export function SpreadsheetProcessor() {
               onSavePreset={handleSavePreset}
               onLoadPreset={handleLoadPreset}
               onDeletePreset={handleDeletePreset}
+              onImportPresets={handleImportPresets}
             />
           </div>
         </div>

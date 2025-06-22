@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,9 +15,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Save, Plus, Trash2, Check, X } from "lucide-react"
+import { Save, Plus, Trash2, Check, X, Download, Upload } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import type { Preset } from "./spreadsheet-processor"
+import { saveAs } from "file-saver"
 
 interface PresetManagerProps {
   presets: Preset[]
@@ -25,6 +26,7 @@ interface PresetManagerProps {
   onSavePreset: (preset: Preset) => void
   onLoadPreset: (presetId: string) => void
   onDeletePreset: (presetId: string) => void
+  onImportPresets: (presets: Preset[]) => void
 }
 
 export function PresetManager({
@@ -33,7 +35,9 @@ export function PresetManager({
   onSavePreset,
   onLoadPreset,
   onDeletePreset,
+  onImportPresets,
 }: PresetManagerProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [isNewPresetDialogOpen, setIsNewPresetDialogOpen] = useState(false)
   const [newPresetName, setNewPresetName] = useState("")
   const [notification, setNotification] = useState<{
@@ -108,6 +112,74 @@ export function PresetManager({
         message: "Failed to delete preset. Please try again.",
       })
     }
+  }
+
+  const handleExportPresets = () => {
+    if (presets.length === 0) {
+      setNotification({
+        type: "error",
+        message: "No presets to export.",
+      })
+      return
+    }
+
+    try {
+      const data = JSON.stringify(presets, null, 2)
+      const blob = new Blob([data], { type: "application/json" })
+      saveAs(blob, "spreadsheet-presets.json")
+      setNotification({
+        type: "success",
+        message: "Presets exported successfully!",
+      })
+    } catch (error) {
+      console.error("Error exporting presets:", error)
+      setNotification({
+        type: "error",
+        message: "Failed to export presets.",
+      })
+    }
+  }
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleImportPresetsFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string
+        const importedPresets = JSON.parse(text)
+
+        if (!Array.isArray(importedPresets) || importedPresets.some((p) => !p.id || !p.name)) {
+          setNotification({
+            type: "error",
+            message: "Invalid preset file format.",
+          })
+          return
+        }
+
+        onImportPresets(importedPresets)
+        setNotification({
+          type: "success",
+          message: "Presets imported successfully!",
+        })
+      } catch (error) {
+        console.error("Error importing presets:", error)
+        setNotification({
+          type: "error",
+          message: "Failed to import presets. File might be corrupt.",
+        })
+      } finally {
+        if (event.target) {
+          event.target.value = ""
+        }
+      }
+    }
+    reader.readAsText(file)
   }
 
   return (
@@ -194,6 +266,24 @@ export function PresetManager({
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          </div>
+          <div className="border-t my-2" />
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExportPresets}>
+              <Download className="h-4 w-4 mr-2" />
+              Export All Presets
+            </Button>
+            <Button variant="outline" onClick={handleImportClick}>
+              <Upload className="h-4 w-4 mr-2" />
+              Import Presets
+            </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handleImportPresetsFile}
+              accept=".json"
+            />
           </div>
         </div>
       </CardContent>
