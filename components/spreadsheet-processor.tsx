@@ -1075,7 +1075,7 @@ export function SpreadsheetProcessor() {
   }
 
   // Template management functions
-  const handleAddTemplate = async (file: File, name: string) => {
+  const handleAddTemplate = async (file: File, name: string, useSecondRowAsConstants: boolean) => {
     if (file.size > 20 * 1024 * 1024) {
       alert("File size exceeds the 20MB limit")
       return
@@ -1087,12 +1087,19 @@ export function SpreadsheetProcessor() {
       if (rawTemplateData.length > 0) {
         // Only use the header row
         const headers = rawTemplateData[0]
-
-        // Create template columns with null constants
-        const templateColumns: TemplateColumn[] = headers.map((header) => ({
-          name: header,
-          constant: null,
-        }))
+        let templateColumns: TemplateColumn[]
+        if (useSecondRowAsConstants && rawTemplateData.length > 1) {
+          const secondRow = rawTemplateData[1]
+          templateColumns = headers.map((header, idx) => ({
+            name: header,
+            constant: secondRow[idx] !== undefined && secondRow[idx] !== "" ? String(secondRow[idx]) : null,
+          }))
+        } else {
+          templateColumns = headers.map((header) => ({
+            name: header,
+            constant: null,
+          }))
+        }
 
         const now = new Date()
 

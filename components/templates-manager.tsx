@@ -23,7 +23,7 @@ import type { Template, TemplateColumn } from "./spreadsheet-processor"
 
 interface TemplatesManagerProps {
   templates: Template[]
-  onAddTemplate: (file: File, name: string) => void
+  onAddTemplate: (file: File, name: string, useSecondRowAsConstants: boolean) => void
   onUpdateTemplate: (id: string, updates: Partial<Template>) => void
   onDeleteTemplate: (id: string) => void
   onExportTemplate: (id: string, format: "csv" | "xlsx") => void
@@ -56,13 +56,15 @@ export function TemplatesManager({
     constant: null,
   })
   const [error, setError] = useState<string | null>(null)
+  const [useSecondRowAsConstants, setUseSecondRowAsConstants] = useState(false)
 
   const handleAddTemplate = () => {
     if (!newTemplateName.trim() || !newTemplateFile) return
 
-    onAddTemplate(newTemplateFile, newTemplateName)
+    onAddTemplate(newTemplateFile, newTemplateName, useSecondRowAsConstants)
     setNewTemplateName("")
     setNewTemplateFile(null)
+    setUseSecondRowAsConstants(false)
     setIsAddDialogOpen(false)
   }
 
@@ -136,6 +138,15 @@ export function TemplatesManager({
                 <div className="grid gap-2">
                   <Label htmlFor="template-file">Upload File</Label>
                   <Input id="template-file" type="file" onChange={handleFileChange} accept=".csv,.xlsx,.xls,.txt" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="use-second-row"
+                    type="checkbox"
+                    checked={useSecondRowAsConstants}
+                    onChange={(e) => setUseSecondRowAsConstants(e.target.checked)}
+                  />
+                  <Label htmlFor="use-second-row">Use second row as constants</Label>
                 </div>
               </div>
               <DialogFooter>
