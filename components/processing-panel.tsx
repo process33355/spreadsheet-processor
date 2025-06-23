@@ -65,27 +65,17 @@ export function ProcessingPanel({
 
   // Function to get missing lookup values for a specific XLOOKUP transformation
   const getMissingLookupValues = (transform: Transformation, transformIndex: number) => {
-    console.log("Checking missing values for transform:", transform.newColumnName)
-    console.log("Transform config:", {
-      type: transform.type,
-      lookupSheet: transform.lookupSheet,
-      lookupColumn: transform.lookupColumn,
-      sourceColumns: transform.sourceColumns,
-    })
-
     if (
       transform.type !== "xlookup" ||
       !transform.lookupSheet ||
       !transform.lookupColumn ||
       !transform.sourceColumns.length
     ) {
-      console.log("Transform not ready for lookup analysis")
       return []
     }
 
     // Simulate the data processing up to this transformation
     let processedData = configuredData.map((row) => ({ ...row }))
-    console.log("Starting with configured data rows:", processedData.length)
 
     // Apply previous transformations
     for (let i = 0; i < transformIndex; i++) {
@@ -151,13 +141,9 @@ export function ProcessingPanel({
       })
     }
 
-    console.log("After applying previous transforms, data rows:", processedData.length)
-
     // Now check which lookup values are missing
     const missingValues: Array<{ lookupValue: string; sourceRow: DataRow }> = []
     const lookupColumn = transform.sourceColumns[0]
-
-    console.log("Looking up values from column:", lookupColumn)
 
     // Get all unique lookup values first - but exclude empty/null/undefined values
     const allLookupValues = new Set<string>()
@@ -177,9 +163,6 @@ export function ProcessingPanel({
       }
     })
 
-    console.log("Total unique lookup values to check:", allLookupValues.size)
-    console.log("Sample lookup values:", Array.from(allLookupValues).slice(0, 5))
-
     // Check each unique lookup value
     allLookupValues.forEach((lookupValue) => {
       let found = false
@@ -198,7 +181,6 @@ export function ProcessingPanel({
         // Look up in a support sheet
         const supportSheet = supportSheets.find((s) => s.id === transform.lookupSheet)
         if (supportSheet) {
-          console.log("Looking in support sheet:", supportSheet.name, "with", supportSheet.data.length, "rows")
           found = supportSheet.data.some((r) => {
             const compareValue = r[transform.lookupColumn!]
             return (
@@ -207,8 +189,6 @@ export function ProcessingPanel({
               String(compareValue).toLowerCase().trim() === String(lookupValue).toLowerCase().trim()
             )
           })
-        } else {
-          console.log("Support sheet not found for ID:", transform.lookupSheet)
         }
       }
 
@@ -220,12 +200,6 @@ export function ProcessingPanel({
         }
       }
     })
-
-    console.log("Missing values found:", missingValues.length)
-    console.log(
-      "Sample missing values:",
-      missingValues.slice(0, 3).map((v) => v.lookupValue),
-    )
 
     return missingValues
   }

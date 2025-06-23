@@ -136,6 +136,8 @@ export function SpreadsheetProcessor() {
   const [validationError, setValidationError] = useState<string | null>(null)
   const [validationWarning, setValidationWarning] = useState<string | null>(null)
   const previewTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const [formulaErrorCount, setFormulaErrorCount] = useState(0)
+  const [lastFormulaError, setLastFormulaError] = useState<string | null>(null)
 
   // Function to check for missing lookup values across all XLOOKUP transformations
   const checkForMissingLookupValues = useCallback(() => {
@@ -502,6 +504,8 @@ export function SpreadsheetProcessor() {
     if (validationError) return
 
     setIsProcessing(true)
+    setFormulaErrorCount(0)
+    setLastFormulaError(null)
 
     try {
       // Get the first file's data for headers
@@ -707,7 +711,9 @@ export function SpreadsheetProcessor() {
                   )
                   newRow[transform.newColumnName] = result
                 } catch (e) {
-                  console.error("Error evaluating formula", e)
+                  setFormulaErrorCount((c) => c + 1)
+                  setLastFormulaError((e as Error).message || String(e))
+                  // Suppress console.error
                   newRow[transform.newColumnName] = "Error"
                 }
               }
@@ -1263,6 +1269,19 @@ export function SpreadsheetProcessor() {
               <Alert className="mt-4 bg-yellow-50 border-yellow-200">
                 <Info className="h-4 w-4 text-yellow-500" />
                 <AlertDescription className="text-yellow-700">{validationWarning}</AlertDescription>
+              </Alert>
+            )}
+            {formulaErrorCount > 0 && (
+              <Alert className="mt-4 bg-yellow-50 border-yellow-200">
+                <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                <AlertDescription className="text-yellow-700">
+                  <div className="font-semibold mb-1">Some custom formulas could not be evaluated</div>
+                  <div className="text-sm mb-1">{formulaErrorCount} formula error{formulaErrorCount > 1 ? 's' : ''} occurred during processing.</div>
+                  {lastFormulaError && (
+                    <div className="text-xs text-gray-600">Last error: {lastFormulaError}</div>
+                  )}
+                  <div className="text-xs mt-1">Check your custom formulas for typos or missing columns.</div>
+                </AlertDescription>
               </Alert>
             )}
           </div>
