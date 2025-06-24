@@ -40,15 +40,19 @@ export function TemplateFillingPanel({
     onTemplateSelect(templateId === "none" ? null : templateId)
   }
 
-  const handleColumnMappingChange = (templateColumn: string, processedColumn: string | null) => {
-    onColumnMappingChange(templateColumn, processedColumn)
+  const handleColumnMappingChange = (templateColumn: string, value: string | null) => {
+    onColumnMappingChange(templateColumn, value)
   }
 
-  // Get the mapped processed column for a template column
+  // Get the mapped processed column or constant for a template column
   const getMappedColumn = (templateColumn: string) => {
     if (!templateMapping || !templateMapping.columnMappings) return null
     return templateMapping.columnMappings[templateColumn] || null
   }
+
+  // Helper to check if a value is a constant
+  const isConstantValue = (val: string | null) => val && val.startsWith("CONST:")
+  const getConstantValue = (val: string | null) => (val ? val.replace(/^CONST:/, "") : "")
 
   return (
     <Card className="bg-blue-50">
@@ -75,7 +79,7 @@ export function TemplateFillingPanel({
             <div className="grid gap-4">
               <h3 className="text-lg font-semibold">Column Mapping</h3>
               <p className="text-sm text-gray-500">
-                Map processed columns to template columns. Columns with constants cannot be mapped.
+                Map processed columns to template columns, or set a constant value from the template. Columns with constants in the template file cannot be changed.
               </p>
 
               {/* Fixed height container with vertical scrolling */}
@@ -103,22 +107,35 @@ export function TemplateFillingPanel({
                             ) : (
                               <Select
                                 value={getMappedColumn(column.name) || "none"}
-                                onValueChange={(value) =>
-                                  handleColumnMappingChange(column.name, value === "none" ? null : value)
-                                }
+                                onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
                               >
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select column" />
+                                  <SelectValue placeholder="Select column or constant" />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="none">None</SelectItem>
+                                  <div className="px-2 py-1 text-xs text-gray-500">Processed Columns</div>
                                   {processedColumns.map((procColumn) => (
                                     <SelectItem key={procColumn} value={procColumn}>
                                       {procColumn}
                                     </SelectItem>
                                   ))}
+                                  {selectedTemplate.valueOptions && selectedTemplate.valueOptions[column.name] && selectedTemplate.valueOptions[column.name].length > 0 && (
+                                    <>
+                                      <div className="px-2 py-1 text-xs text-gray-500">Constants from Template Rows 5-50</div>
+                                      {selectedTemplate.valueOptions[column.name].map((val) => (
+                                        <SelectItem key={val} value={`CONST:${val}`}>
+                                          {val}
+                                        </SelectItem>
+                                      ))}
+                                    </>
+                                  )}
                                 </SelectContent>
                               </Select>
+                            )}
+                            {/* Show selected constant if set */}
+                            {isConstantValue(getMappedColumn(column.name)) && (
+                              <div className="text-xs text-blue-700 mt-1">Constant: {getConstantValue(getMappedColumn(column.name))}</div>
                             )}
                           </TableCell>
                         ))}
@@ -132,7 +149,7 @@ export function TemplateFillingPanel({
                 <Alert className="bg-yellow-50 border-yellow-200">
                   <Info className="h-4 w-4 text-yellow-500" />
                   <AlertDescription className="text-yellow-700">
-                    Some template columns are not mapped. They will be empty in the output.
+                    Some template columns are not mapped or set to a constant. They will be empty in the output.
                   </AlertDescription>
                 </Alert>
               )}

@@ -72,6 +72,7 @@ export type Template = {
   name: string
   file: File | null
   columns: TemplateColumn[]
+  valueOptions?: Record<string, string[]>
   uploadDateTime?: string
   lastEditedDateTime?: string
 }
@@ -739,13 +740,16 @@ export function SpreadsheetProcessor() {
 
             // Fill in each template column
             selectedTemplate.columns.forEach((column) => {
+              const mapping = activePreset.templateMapping?.columnMappings[column.name]
               if (column.constant !== null) {
-                // Use constant value
+                // Use constant value from template file
                 templateRow[column.name] = column.constant
+              } else if (mapping && mapping.startsWith && mapping.startsWith('CONST:')) {
+                // Use constant value from mapping
+                templateRow[column.name] = mapping.replace(/^CONST:/, '')
               } else {
                 // Use mapped processed column if available
-                const mappedColumn = activePreset.templateMapping?.columnMappings[column.name]
-                templateRow[column.name] = mappedColumn && processedRow[mappedColumn] ? processedRow[mappedColumn] : ""
+                templateRow[column.name] = mapping && processedRow[mapping] ? processedRow[mapping] : ""
               }
             })
 
@@ -1107,6 +1111,15 @@ export function SpreadsheetProcessor() {
           }))
         }
 
+        // Extract unique values for each column from rows 5-50 (indices 4-49)
+        const valueOptions: Record<string, string[]> = {}
+        if (rawTemplateData.length > 4) {
+          headers.forEach((header, colIdx) => {
+            const values = rawTemplateData.slice(4, 50).map(row => row[colIdx]).filter(v => v !== undefined && v !== null && v !== "")
+            valueOptions[header] = Array.from(new Set(values.map(String)))
+          })
+        }
+
         const now = new Date()
 
         const newTemplate: Template = {
@@ -1114,6 +1127,7 @@ export function SpreadsheetProcessor() {
           name,
           file,
           columns: templateColumns,
+          valueOptions,
           uploadDateTime: now.toISOString(),
           lastEditedDateTime: now.toISOString(),
         }
@@ -1212,7 +1226,7 @@ export function SpreadsheetProcessor() {
     }
   }
 
-  const handleColumnMappingChange = (templateColumn: string, processedColumn: string | null) => {
+  const handleColumnMappingChange = (templateColumn: string, value: string | null) => {
     if (!activePreset.templateMapping) return
 
     setActivePreset({
@@ -1221,7 +1235,7 @@ export function SpreadsheetProcessor() {
         ...activePreset.templateMapping,
         columnMappings: {
           ...activePreset.templateMapping.columnMappings,
-          [templateColumn]: processedColumn,
+          [templateColumn]: value,
         },
       },
     })
