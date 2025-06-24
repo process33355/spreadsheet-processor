@@ -154,4 +154,6 @@ npm run build
 
 ## License
 
-MIT License - see LICENSE file for details 
+This software is proprietary and confidential. All rights reserved.
+
+© 2024 [Your Name/Company]. This software may not be used, copied, modified, or distributed without explicit permission. 
