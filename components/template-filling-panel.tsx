@@ -61,13 +61,13 @@ export function TemplateFillingPanel({
           <div className="grid gap-2">
             <Label htmlFor="template-select">Select Template</Label>
             <Select value={templateMapping?.templateId || "none"} onValueChange={handleTemplateChange}>
-              <SelectTrigger id="template-select" className="w-40">
+              <SelectTrigger id="template-select" className="min-w-[260px] max-w-[400px] truncate">
                 <SelectValue placeholder="Select a template" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
                 {templates.map((template) => (
-                  <SelectItem key={template.id} value={template.id}>
+                  <SelectItem key={template.id} value={template.id} className="text-sm max-w-[350px] truncate">
                     {template.name}
                   </SelectItem>
                 ))}
@@ -109,22 +109,22 @@ export function TemplateFillingPanel({
                                 value={getMappedColumn(column.name) || "none"}
                                 onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
                               >
-                                <SelectTrigger>
+                                <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs">
                                   <SelectValue placeholder="Select column or constant" />
                                 </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="none">None</SelectItem>
+                                <SelectContent className="max-h-[400px] min-w-[220px] text-xs">
+                                  <SelectItem value="none" className="text-xs">None</SelectItem>
                                   <div className="px-2 py-1 text-xs text-gray-500">Processed Columns</div>
                                   {processedColumns.map((procColumn) => (
-                                    <SelectItem key={procColumn} value={procColumn}>
+                                    <SelectItem key={procColumn} value={procColumn} className="text-xs max-w-[300px] truncate">
                                       {procColumn}
                                     </SelectItem>
                                   ))}
                                   {selectedTemplate.valueOptions && selectedTemplate.valueOptions[column.name] && selectedTemplate.valueOptions[column.name].length > 0 && (
                                     <>
-                                      <div className="px-2 py-1 text-xs text-gray-500">Constants from Template Rows 5-50</div>
+                                      <div className="px-2 py-1 text-xs text-gray-500">Constants from Template Rows 5-500</div>
                                       {selectedTemplate.valueOptions[column.name].map((val) => (
-                                        <SelectItem key={val} value={`CONST:${val}`}>
+                                        <SelectItem key={val} value={`CONST:${val}`} className="text-xs max-w-[300px] truncate">
                                           {val}
                                         </SelectItem>
                                       ))}

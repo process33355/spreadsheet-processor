@@ -1118,11 +1118,11 @@ export function SpreadsheetProcessor() {
           }))
         }
 
-        // Extract unique values for each column from rows 5-50 (indices 4-49)
+        // Extract unique values for each column from rows 5-500 (indices 4-499)
         const valueOptions: Record<string, string[]> = {}
         if (rawTemplateData.length > 4) {
           headers.forEach((header, colIdx) => {
-            const values = rawTemplateData.slice(4, 50).map(row => row[colIdx]).filter(v => v !== undefined && v !== null && v !== "")
+            const values = rawTemplateData.slice(4, 500).map(row => row[colIdx]).filter(v => v !== undefined && v !== null && v !== "")
             valueOptions[header] = Array.from(new Set(values.map(String)))
           })
         }
