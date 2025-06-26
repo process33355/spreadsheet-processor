@@ -28,6 +28,7 @@ export function TemplateFillingPanel({
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [search, setSearch] = useState("")
   const [customConstants, setCustomConstants] = useState<{ [column: string]: string }>({})
+  const [customConstantInputs, setCustomConstantInputs] = useState<{ [column: string]: string }>({})
 
   // Update selected template when templateMapping changes
   useEffect(() => {
@@ -39,17 +40,24 @@ export function TemplateFillingPanel({
     }
   }, [templateMapping, templates])
 
-  // Sync customConstants with templateMapping changes
+  // Sync customConstants and customConstantInputs with templateMapping changes
   useEffect(() => {
     if (!selectedTemplate) return
     const newCustomConstants: { [column: string]: string } = {}
+    const newCustomConstantInputs: { [column: string]: string } = {}
     selectedTemplate.columns.forEach((column) => {
       const mapped = getMappedColumn(column.name)
       if (isConstantValue(mapped)) {
-        newCustomConstants[column.name] = getConstantValue(mapped)
+        const val = getConstantValue(mapped)
+        newCustomConstants[column.name] = val
+        newCustomConstantInputs[column.name] = val
+      } else {
+        newCustomConstants[column.name] = ""
+        newCustomConstantInputs[column.name] = ""
       }
     })
     setCustomConstants(newCustomConstants)
+    setCustomConstantInputs(newCustomConstantInputs)
   }, [selectedTemplate, templateMapping])
 
   const handleTemplateChange = (templateId: string) => {
@@ -76,14 +84,25 @@ export function TemplateFillingPanel({
     return options.filter(opt => opt.toLowerCase().includes(search.toLowerCase()))
   }
 
-  const handleCustomConstantChange = (columnName: string, value: string) => {
-    setCustomConstants((prev) => ({ ...prev, [columnName]: value }))
+  // Only update input value, not mapping
+  const handleCustomConstantInputChange = (columnName: string, value: string) => {
+    setCustomConstantInputs((prev) => ({ ...prev, [columnName]: value }))
+  }
+
+  // Set the constant value when clicking 'Set'
+  const handleSetCustomConstant = (columnName: string) => {
+    const value = customConstantInputs[columnName] || ""
     if (value.trim() !== "") {
+      setCustomConstants((prev) => ({ ...prev, [columnName]: value }))
       onColumnMappingChange(columnName, `CONST:${value}`)
-    } else {
-      // If cleared, set mapping to null
-      onColumnMappingChange(columnName, null)
     }
+  }
+
+  // Remove the constant value when clicking 'Remove'
+  const handleRemoveCustomConstant = (columnName: string) => {
+    setCustomConstants((prev) => ({ ...prev, [columnName]: "" }))
+    setCustomConstantInputs((prev) => ({ ...prev, [columnName]: "" }))
+    onColumnMappingChange(columnName, null)
   }
 
   return (
@@ -189,13 +208,35 @@ export function TemplateFillingPanel({
                                   </Select>
                                   {/* Custom constant input */}
                                   <div className="mt-2 flex flex-col gap-1">
-                                    <input
-                                      type="text"
-                                      className="border rounded px-2 py-1 text-xs w-full bg-background disabled:bg-gray-100"
-                                      placeholder="Type custom constant..."
-                                      value={customConstants[column.name] || ""}
-                                      onChange={e => handleCustomConstantChange(column.name, e.target.value)}
-                                    />
+                                    <div className="flex gap-2 items-center">
+                                      <input
+                                        type="text"
+                                        className="border rounded px-2 py-1 text-xs w-full bg-background disabled:bg-gray-100"
+                                        placeholder="Type custom constant..."
+                                        value={customConstantInputs[column.name] || ""}
+                                        onChange={e => handleCustomConstantInputChange(column.name, e.target.value)}
+                                        disabled={isConstantValue(mappedValue) || column.constant !== null}
+                                      />
+                                      {/* Set/Remove button logic */}
+                                      {isConstantValue(mappedValue) ? (
+                                        <button
+                                          type="button"
+                                          className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 border border-red-200 hover:bg-red-200"
+                                          onClick={() => handleRemoveCustomConstant(column.name)}
+                                        >
+                                          Remove
+                                        </button>
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200"
+                                          onClick={() => handleSetCustomConstant(column.name)}
+                                          disabled={!(customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "")}
+                                        >
+                                          Set
+                                        </button>
+                                      )}
+                                    </div>
                                     {/* Blue text always rendered, but only visible if set, with min height to prevent layout shift */}
                                     <div className="min-h-[20px]">
                                       {isConstantValue(mappedValue) && (
