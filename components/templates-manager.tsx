@@ -114,9 +114,9 @@ export function TemplatesManager({
   }
 
   return (
-    <Card className="bg-blue-50">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-4">
+    <Card className="bg-blue-50 w-full max-w-full overflow-x-auto">
+      <CardContent className="p-4 w-full max-w-full">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
           <h3 className="text-lg font-semibold">
             Templates <span className="ml-2 text-sm text-muted-foreground">({templates.length})</span>
           </h3>
@@ -196,9 +196,9 @@ export function TemplatesManager({
 
         {templates.length === 0 ? (
           <div
-            className={`border-2 border-dashed rounded-md p-8 text-center bg-white cursor-pointer transition-colors ${
-              isDraggingTemplate ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
-            }`}
+            className={`border-2 border-dashed rounded-md p-8 text-center bg-white cursor-pointer transition-colors w-full max-w-full` +
+              (isDraggingTemplate ? " border-primary bg-primary/5" : " border-gray-300 hover:border-primary")}
+            style={{ overflowX: 'auto' }}
             onDragOver={handleTemplateDragOver}
             onDragLeave={handleTemplateDragLeave}
             onDrop={e => {
@@ -217,10 +217,10 @@ export function TemplatesManager({
             <span className="block text-xs text-gray-500">Drag and drop a file here, or click to add</span>
           </div>
         ) : (
-          <div className="grid gap-4">
+          <div className="grid gap-4 w-full max-w-full">
             {templates.map((template) => (
-              <div key={template.id} className="border rounded-md p-4 bg-white">
-                <div className="flex justify-between items-start mb-4">
+              <div key={template.id} className="border rounded-md p-4 bg-white w-full max-w-full overflow-x-auto">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
                   <div>
                     <h4 className="font-medium">{template.name}</h4>
                     <p className="text-sm text-gray-500">{template.columns.length} columns</p>
@@ -231,7 +231,7 @@ export function TemplatesManager({
                       </p>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
@@ -248,23 +248,23 @@ export function TemplatesManager({
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => onExportTemplate(template.id, "csv")}>
+                  <div className="flex gap-2 flex-wrap">
+                    <Button variant="outline" size="sm" onClick={() => onExportTemplate(template.id, "csv")}> 
                       <Download className="h-4 w-4 mr-2" />
                       Export as CSV
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => onExportTemplate(template.id, "xlsx")}>
+                    <Button variant="outline" size="sm" onClick={() => onExportTemplate(template.id, "xlsx")}> 
                       <Download className="h-4 w-4 mr-2" />
                       Export as Excel
                     </Button>
                   </div>
 
                   {/* Inline Preview */}
-                  <div className="border rounded-md">
+                  <div className="border rounded-md w-full max-w-full overflow-x-auto">
                     <div className="bg-muted p-2 text-sm font-medium">Preview</div>
-                    <div className="max-w-[1000px] overflow-x-auto">
-                       <div className="h-[200px] overflow-y-auto">
-                        <Table className="min-w-[800px] w-full">
+                    <div className="w-full max-w-full overflow-x-auto">
+                       <div className="h-[200px] overflow-y-auto w-full min-w-[320px]">
+                        <Table className="w-full min-w-[600px]">
                           <TableHeader>
                             <TableRow>
                               {template.columns.map((column) => (
