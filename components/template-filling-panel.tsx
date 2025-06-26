@@ -134,13 +134,13 @@ export function TemplateFillingPanel({
               </p>
 
               {/* Fixed height container with vertical scrolling */}
-              <div className="border rounded-md h-[200px] overflow-y-auto">
+              <div className="border rounded-md h-[400px] overflow-y-auto">
                 {/* Fixed width container with horizontal scrolling */}
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="sticky left-0 bg-background z-20 w-[200px]">Column Type</TableHead>
+                        <TableHead className="sticky left-0 bg-background z-20 w-[280px]">Column Type</TableHead>
                         {selectedTemplate.columns.map((column) => {
                           const mappedValue = getMappedColumn(column.name);
                           const isCustomConstant = !!customConstants[column.name] && customConstants[column.name].trim() !== "";
@@ -155,7 +155,14 @@ export function TemplateFillingPanel({
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell className="font-medium sticky left-0 bg-background z-10">Mapping</TableCell>
+                        <TableCell className="font-medium sticky left-0 bg-background z-10 w-[280px]">
+                          Mapping Options<br/>
+                          <span className="text-xs text-gray-500 font-normal">
+                            1. Processed Column<br/>
+                            2. Template Constant<br/>
+                            3. Custom Constant
+                          </span>
+                        </TableCell>
                         {selectedTemplate?.columns?.map((column) => {
                           const mappedValue = getMappedColumn(column.name);
                           const isCustomConstant = !!customConstants[column.name] && customConstants[column.name].trim() !== "";
@@ -165,50 +172,79 @@ export function TemplateFillingPanel({
                               {column.constant !== null ? (
                                 <div className="text-sm text-blue-600">Using constant value: {column.constant}</div>
                               ) : (
-                                <>
-                                  <Select
-                                    value={isConstantValue(mappedValue) ? "none" : (mappedValue || "none")}
-                                    onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
-                                    disabled={isCustomConstant}
-                                  >
-                                    <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs">
-                                      <SelectValue placeholder="Select column or constant" />
-                                    </SelectTrigger>
-                                    <SelectContent
-                                      className="max-h-[600px] min-w-[220px] text-xs"
-                                      searchBox={
-                                        <input
-                                          type="text"
-                                          value={search}
-                                          onChange={e => setSearch(e.target.value)}
-                                          placeholder="Search..."
-                                          className="w-full px-2 py-1 border rounded text-xs bg-background"
-                                          autoFocus
-                                        />
-                                      }
+                                <div className="space-y-3">
+                                  {/* Option 1: Processed Column */}
+                                  <div>
+                                    <Label className="text-xs font-medium text-gray-700">1. Processed Column</Label>
+                                    <Select
+                                      value={isConstantValue(mappedValue) ? "none" : (mappedValue || "none")}
+                                      onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
+                                      disabled={isCustomConstant}
                                     >
-                                      <SelectItem value="none" className="text-xs">None</SelectItem>
-                                      <div className="px-2 py-1 text-xs text-gray-500">Processed Columns</div>
-                                      {getFilteredOptions(processedColumns).map((procColumn) => (
-                                        <SelectItem key={procColumn} value={procColumn} className="text-xs max-w-[300px] truncate">
-                                          {procColumn}
-                                        </SelectItem>
-                                      ))}
-                                      {valueOptions.length > 0 && (
-                                        <>
-                                          <div className="px-2 py-1 text-xs text-gray-500">Constants from Template Rows 5-500</div>
-                                          {getFilteredOptions(valueOptions).map((val) => (
-                                            <SelectItem key={val} value={`CONST:${val}`} className="text-xs max-w-[300px] truncate">
-                                              {val}
-                                            </SelectItem>
-                                          ))}
-                                        </>
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                  {/* Custom constant input */}
-                                  <div className="mt-2 flex flex-col gap-1">
-                                    <div className="flex gap-2 items-center">
+                                      <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs mt-1">
+                                        <SelectValue placeholder="Select processed column" />
+                                      </SelectTrigger>
+                                      <SelectContent
+                                        className="max-h-[600px] min-w-[220px] text-xs"
+                                        searchBox={
+                                          <input
+                                            type="text"
+                                            value={search}
+                                            onChange={e => setSearch(e.target.value)}
+                                            placeholder="Search..."
+                                            className="w-full px-2 py-1 border rounded text-xs bg-background"
+                                            autoFocus
+                                          />
+                                        }
+                                      >
+                                        <SelectItem value="none" className="text-xs">None</SelectItem>
+                                        {getFilteredOptions(processedColumns).map((procColumn) => (
+                                          <SelectItem key={procColumn} value={procColumn} className="text-xs max-w-[300px] truncate">
+                                            {procColumn}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {/* Option 2: Template Constant - Always show */}
+                                  <div>
+                                    <Label className="text-xs font-medium text-gray-700">2. Template Constant</Label>
+                                    <Select
+                                      value={isConstantValue(mappedValue) && valueOptions.includes(getConstantValue(mappedValue)) ? mappedValue || undefined : "none"}
+                                      onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
+                                      disabled={isCustomConstant || valueOptions.length === 0}
+                                    >
+                                      <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs mt-1">
+                                        <SelectValue placeholder={valueOptions.length === 0 ? "No constants available" : "Select template constant"} />
+                                      </SelectTrigger>
+                                      <SelectContent
+                                        className="max-h-[600px] min-w-[220px] text-xs"
+                                        searchBox={
+                                          <input
+                                            type="text"
+                                            value={search}
+                                            onChange={e => setSearch(e.target.value)}
+                                            placeholder="Search..."
+                                            className="w-full px-2 py-1 border rounded text-xs bg-background"
+                                            autoFocus
+                                          />
+                                        }
+                                      >
+                                        <SelectItem value="none" className="text-xs">None</SelectItem>
+                                        {getFilteredOptions(valueOptions).map((val) => (
+                                          <SelectItem key={val} value={`CONST:${val}`} className="text-xs max-w-[300px] truncate">
+                                            {val}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {/* Option 3: Custom Constant */}
+                                  <div>
+                                    <Label className="text-xs font-medium text-gray-700">3. Custom Constant</Label>
+                                    <div className="flex gap-2 items-center mt-1">
                                       <input
                                         type="text"
                                         className="border rounded px-2 py-1 text-xs w-full bg-background disabled:bg-gray-100"
@@ -218,7 +254,7 @@ export function TemplateFillingPanel({
                                         disabled={isConstantValue(mappedValue) || column.constant !== null}
                                       />
                                       {/* Set/Remove button logic */}
-                                      {isConstantValue(mappedValue) ? (
+                                      {isConstantValue(mappedValue) && !valueOptions.includes(getConstantValue(mappedValue)) ? (
                                         <button
                                           type="button"
                                           className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 border border-red-200 hover:bg-red-200"
@@ -239,12 +275,12 @@ export function TemplateFillingPanel({
                                     </div>
                                     {/* Blue text always rendered, but only visible if set, with min height to prevent layout shift */}
                                     <div className="min-h-[20px]">
-                                      {isConstantValue(mappedValue) && (
+                                      {isConstantValue(mappedValue) && !valueOptions.includes(getConstantValue(mappedValue)) && (
                                         <span className="text-xs text-blue-700 block">Constant: {getConstantValue(mappedValue)}</span>
                                       )}
                                     </div>
                                   </div>
-                                </>
+                                </div>
                               )}
                             </TableCell>
                           );
