@@ -33,11 +33,12 @@ export type Filter = {
   column: string
   operator: "equals" | "contains" | "greaterThan" | "lessThan"
   value: string
+  caseSensitive?: boolean
 }
 
 export type Transformation = {
   id: string
-  type: "multiply" | "add" | "subtract" | "divide" | "concat" | "custom" | "xlookup"
+  type: "multiply" | "add" | "subtract" | "divide" | "concat" | "custom" | "xlookup" | "text"
   newColumnName: string
   sourceColumns: string[] // This should always be initialized as an array
   formula?: string
@@ -46,6 +47,8 @@ export type Transformation = {
   returnColumn?: string // For XLOOKUP: column to return values from
   lookupSheetName?: string // For tracking missing support sheets
   lookupSheetLastEdited?: string // For tracking missing support sheets
+  textValue?: string // For text transformation
+  textParts?: string[] // For concatenate transformation, to hold text parts
 }
 
 export type DataRow = Record<string, any>
@@ -579,7 +582,11 @@ export function SpreadsheetProcessor() {
               case "equals":
                 return value === filter.value
               case "contains":
-                return String(value).includes(filter.value)
+                if (filter.caseSensitive) {
+                  return String(value).includes(filter.value)
+                } else {
+                  return String(value).toLowerCase().includes(String(filter.value).toLowerCase())
+                }
               case "greaterThan":
                 return Number(value) > Number(filter.value)
               case "lessThan":

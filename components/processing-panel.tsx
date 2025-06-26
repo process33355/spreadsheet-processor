@@ -244,6 +244,7 @@ export function ProcessingPanel({
         column: allColumns.length > 0 ? allColumns[0] : "",
         operator: "equals",
         value: "",
+        caseSensitive: false,
       }
       onFiltersChange([...filters, newFilter])
     } catch (error) {
@@ -273,7 +274,7 @@ export function ProcessingPanel({
       const newTransformation: Transformation = {
         id: `transform_${Date.now()}`,
         type: "multiply",
-        newColumnName: "New Column",
+        newColumnName: "",
         sourceColumns: [],
       }
 
@@ -366,7 +367,7 @@ export function ProcessingPanel({
     <Card className="bg-blue-50">
       <CardContent className="pt-6">
         <div className="grid gap-6">
-          <Accordion type="single" collapsible defaultValue="filters">
+          <Accordion type="multiple" defaultValue={["filters", "transformations"]}>
             <AccordionItem value="filters">
               <AccordionTrigger className="flex justify-between">
                 <div className="flex items-center">
@@ -430,6 +431,18 @@ export function ProcessingPanel({
                             onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
                             placeholder="Enter value"
                           />
+                          {filter.operator === "contains" && (
+                            <div className="flex items-center mt-1">
+                              <input
+                                type="checkbox"
+                                id={`filter-case-sensitive-${filter.id}`}
+                                checked={filter.caseSensitive || false}
+                                onChange={e => updateFilter(filter.id, { caseSensitive: e.target.checked })}
+                                className="mr-2"
+                              />
+                              <label htmlFor={`filter-case-sensitive-${filter.id}`} className="text-sm">Case Sensitive</label>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -442,7 +455,6 @@ export function ProcessingPanel({
                 </div>
               </AccordionContent>
             </AccordionItem>
-
             <AccordionItem value="transformations">
               <AccordionTrigger className="flex justify-between">
                 <div className="flex items-center">
@@ -500,6 +512,7 @@ export function ProcessingPanel({
                                 <SelectItem value="concat">Concatenate</SelectItem>
                                 <SelectItem value="xlookup">XLOOKUP</SelectItem>
                                 <SelectItem value="custom">Custom Formula</SelectItem>
+                                <SelectItem value="text">Text</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
@@ -510,7 +523,8 @@ export function ProcessingPanel({
                               id={`transform-name-${transform.id}`}
                               value={transform.newColumnName}
                               onChange={(e) => updateTransformation(transform.id, { newColumnName: e.target.value })}
-                              placeholder="Enter new column name"
+                              placeholder="New Column"
+                              className={"placeholder:text-gray-400"}
                             />
                           </div>
 
@@ -601,7 +615,7 @@ export function ProcessingPanel({
                                                   )}
                                                 </SelectItem>
                                               ))
-                                            : getSupportSheetColumns(transform.lookupSheet).map((column) => (
+                                            : getSupportSheetColumns(transform.lookupSheet || "").map((column) => (
                                                 <SelectItem key={column} value={column}>
                                                   {column}
                                                 </SelectItem>
@@ -633,7 +647,7 @@ export function ProcessingPanel({
                                                   )}
                                                 </SelectItem>
                                               ))
-                                            : getSupportSheetColumns(transform.lookupSheet).map((column) => (
+                                            : getSupportSheetColumns(transform.lookupSheet || "").map((column) => (
                                                 <SelectItem key={column} value={column}>
                                                   {column}
                                                 </SelectItem>
@@ -661,7 +675,7 @@ export function ProcessingPanel({
                                         <Table>
                                           <TableHeader>
                                             <TableRow>
-                                              {getSupportSheetColumns(transform.lookupSheet).map((column) => (
+                                              {getSupportSheetColumns(transform.lookupSheet || "").map((column) => (
                                                 <TableHead
                                                   key={column}
                                                   className={`
@@ -685,7 +699,7 @@ export function ProcessingPanel({
                                               ?.data.slice(0, 10)
                                               .map((row, rowIndex) => (
                                                 <TableRow key={rowIndex}>
-                                                  {getSupportSheetColumns(transform.lookupSheet).map((column) => (
+                                                  {getSupportSheetColumns(transform.lookupSheet || "").map((column) => (
                                                     <TableCell
                                                       key={column}
                                                       className={`
@@ -758,14 +772,25 @@ export function ProcessingPanel({
                                 </div>
                               )}
                             </div>
-                          ) : transform.type !== "custom" ? (
+                          ) : transform.type === "concat" ? (
                             <div className="grid gap-2">
                               <Label>Source Columns</Label>
                               <div className="grid gap-2">
-                                {transform.type === "concat" ? (
-                                  <div className="grid gap-2">
-                                    {getSourceColumns(transform).map((column, index) => (
-                                      <div key={index} className="flex gap-2">
+                                <div className="grid gap-2">
+                                  {getSourceColumns(transform).map((column, index) => (
+                                    <div key={index} className="flex gap-2 items-center">
+                                      {column.startsWith("__TEXT__") ? (
+                                        <Input
+                                          value={transform.textParts && transform.textParts[index] !== undefined ? transform.textParts[index] : ""}
+                                          onChange={e => {
+                                            const newTextParts = [...(transform.textParts || [])]
+                                            newTextParts[index] = e.target.value
+                                            updateTransformation(transform.id, { textParts: newTextParts })
+                                          }}
+                                          placeholder="Enter text"
+                                          className="w-40"
+                                        />
+                                      ) : (
                                         <Select
                                           value={column}
                                           onValueChange={(value) => {
@@ -790,96 +815,54 @@ export function ProcessingPanel({
                                             ))}
                                           </SelectContent>
                                         </Select>
-
-                                        <Button
-                                          variant="outline"
-                                          size="icon"
-                                          onClick={() => {
-                                            const newColumns = getSourceColumns(transform).filter((_, i) => i !== index)
-                                            updateTransformation(transform.id, { sourceColumns: newColumns })
-                                          }}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ))}
-
-                                    <Button
-                                      variant="outline"
-                                      onClick={() => {
-                                        const currentColumns = getSourceColumns(transform)
-                                        const defaultColumn = availableColumns.length > 0 ? availableColumns[0] : ""
-                                        updateTransformation(transform.id, {
-                                          sourceColumns: [...currentColumns, defaultColumn],
-                                        })
-                                      }}
-                                    >
-                                      <Plus className="h-4 w-4 mr-2" />
-                                      Add Column
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <div className="grid gap-2 sm:grid-cols-2">
-                                    <div>
-                                      <Label>First Column</Label>
-                                      <Select
-                                        value={getSourceColumns(transform)[0] || ""}
-                                        onValueChange={(value) => {
-                                          updateTransformation(transform.id, {
-                                            sourceColumns: updateSourceColumn(transform, 0, value),
-                                          })
+                                      )}
+                                      <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => {
+                                          const newColumns = getSourceColumns(transform).filter((_, i) => i !== index)
+                                          let newTextParts = transform.textParts ? [...transform.textParts] : []
+                                          if (column.startsWith("__TEXT__")) {
+                                            newTextParts = newTextParts.filter((_, i) => i !== index)
+                                          }
+                                          updateTransformation(transform.id, { sourceColumns: newColumns, textParts: newTextParts })
                                         }}
                                       >
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select column" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {availableColumns.map((column) => (
-                                            <SelectItem key={column} value={column}>
-                                              {column}
-                                              {!allColumns.includes(column) && (
-                                                <span className="ml-1 text-xs text-blue-600">
-                                                  (from transformation)
-                                                </span>
-                                              )}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
                                     </div>
+                                  ))}
 
-                                    <div>
-                                      <Label>Second Column</Label>
-                                      <Select
-                                        value={getSourceColumns(transform)[1] || ""}
-                                        onValueChange={(value) => {
-                                          updateTransformation(transform.id, {
-                                            sourceColumns: updateSourceColumn(transform, 1, value),
-                                          })
-                                        }}
-                                      >
-                                        <SelectTrigger>
-                                          <SelectValue placeholder="Select column" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {availableColumns.map((column) => (
-                                            <SelectItem key={column} value={column}>
-                                              {column}
-                                              {!allColumns.includes(column) && (
-                                                <span className="ml-1 text-xs text-blue-600">
-                                                  (from transformation)
-                                                </span>
-                                              )}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  </div>
-                                )}
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      const currentColumns = getSourceColumns(transform)
+                                      const defaultColumn = availableColumns.length > 0 ? availableColumns[0] : ""
+                                      updateTransformation(transform.id, {
+                                        sourceColumns: [...currentColumns, defaultColumn],
+                                      })
+                                    }}
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Column
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                      const currentColumns = getSourceColumns(transform)
+                                      updateTransformation(transform.id, {
+                                        sourceColumns: [...currentColumns, `__TEXT__${currentColumns.length}`],
+                                        textParts: [...(transform.textParts || []), ""],
+                                      })
+                                    }}
+                                  >
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Text
+                                  </Button>
+                                </div>
                               </div>
                             </div>
-                          ) : (
+                          ) : transform.type === "custom" ? (
                             <div className="grid gap-2">
                               <Label htmlFor={`transform-formula-${transform.id}`}>Custom Formula</Label>
                               <Textarea
@@ -892,6 +875,74 @@ export function ProcessingPanel({
                               <p className="text-sm text-gray-500">
                                 Use column names directly in your formula. Example: Price * Quantity
                               </p>
+                            </div>
+                          ) : transform.type === "text" ? (
+                            <div className="grid gap-2">
+                              <Label htmlFor={`transform-text-${transform.id}`}>Text Value</Label>
+                              <Input
+                                id={`transform-text-${transform.id}`}
+                                value={transform.textValue || ""}
+                                onChange={(e) => updateTransformation(transform.id, { textValue: e.target.value })}
+                                placeholder="Enter text value"
+                              />
+                            </div>
+                          ) : (
+                            <div className="grid gap-2 sm:grid-cols-2">
+                              <div>
+                                <Label>First Column</Label>
+                                <Select
+                                  value={getSourceColumns(transform)[0] || ""}
+                                  onValueChange={(value) => {
+                                    updateTransformation(transform.id, {
+                                      sourceColumns: updateSourceColumn(transform, 0, value),
+                                    })
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select column" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableColumns.map((column) => (
+                                      <SelectItem key={column} value={column}>
+                                        {column}
+                                        {!allColumns.includes(column) && (
+                                          <span className="ml-1 text-xs text-blue-600">
+                                            (from transformation)
+                                          </span>
+                                        )}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              <div>
+                                <Label>Second Column</Label>
+                                <Select
+                                  value={getSourceColumns(transform)[1] || ""}
+                                  onValueChange={(value) => {
+                                    updateTransformation(transform.id, {
+                                      sourceColumns: updateSourceColumn(transform, 1, value),
+                                    })
+                                  }}
+                                >
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select column" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {availableColumns.map((column) => (
+                                      <SelectItem key={column} value={column}>
+                                        {column}
+                                        {!allColumns.includes(column) && (
+                                          <span className="ml-1 text-xs text-blue-600">
+                                            (from transformation)
+                                          </span>
+                                        )}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           )}
                         </div>
