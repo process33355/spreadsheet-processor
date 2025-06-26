@@ -167,7 +167,7 @@ export function TemplateFillingPanel({
                               ) : (
                                 <>
                                   <Select
-                                    value={mappedValue || "none"}
+                                    value={isConstantValue(mappedValue) ? "none" : (mappedValue || "none")}
                                     onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
                                     disabled={isCustomConstant}
                                   >
