@@ -140,7 +140,7 @@ export function TemplateFillingPanel({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="sticky left-0 bg-background z-20 w-[280px]">Column Type</TableHead>
+                        <TableHead className="sticky left-0 bg-background z-20 min-w-[160px]">Column Type</TableHead>
                         {selectedTemplate.columns.map((column) => {
                           const mappedValue = getMappedColumn(column.name);
                           const isCustomConstant = !!customConstants[column.name] && customConstants[column.name].trim() !== "";
@@ -155,7 +155,7 @@ export function TemplateFillingPanel({
                     </TableHeader>
                     <TableBody>
                       <TableRow>
-                        <TableCell className="font-medium sticky left-0 bg-background z-10 w-[280px]">
+                        <TableCell className="font-medium sticky left-0 bg-background z-10 min-w-[160px]">
                           Mapping Options<br/>
                           <span className="text-xs text-gray-500 font-normal">
                             1. Processed Column<br/>
