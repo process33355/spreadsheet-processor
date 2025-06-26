@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -25,6 +25,7 @@ export function TemplateFillingPanel({
   onColumnMappingChange,
 }: TemplateFillingPanelProps) {
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
+  const [search, setSearch] = useState("")
 
   // Update selected template when templateMapping changes
   useEffect(() => {
@@ -54,6 +55,12 @@ export function TemplateFillingPanel({
   const isConstantValue = (val: string | null) => val && val.startsWith("CONST:")
   const getConstantValue = (val: string | null) => (val ? val.replace(/^CONST:/, "") : "")
 
+  // Filtered processed columns and constants for dropdown
+  const getFilteredOptions = (options: string[]) => {
+    if (!search.trim()) return options
+    return options.filter(opt => opt.toLowerCase().includes(search.toLowerCase()))
+  }
+
   return (
     <Card className="bg-blue-50">
       <CardContent className="pt-6">
@@ -61,7 +68,7 @@ export function TemplateFillingPanel({
           <div className="grid gap-2">
             <Label htmlFor="template-select">Select Template</Label>
             <Select value={templateMapping?.templateId || "none"} onValueChange={handleTemplateChange}>
-              <SelectTrigger id="template-select" className="min-w-[260px] max-w-[400px] truncate">
+              <SelectTrigger id="template-select" className="min-w-[260px] max-w-[300px] truncate">
                 <SelectValue placeholder="Select a template" />
               </SelectTrigger>
               <SelectContent>
@@ -112,10 +119,22 @@ export function TemplateFillingPanel({
                                 <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs">
                                   <SelectValue placeholder="Select column or constant" />
                                 </SelectTrigger>
-                                <SelectContent className="max-h-[400px] min-w-[220px] text-xs">
+                                <SelectContent
+                                  className="max-h-[400px] min-w-[220px] text-xs"
+                                  searchBox={
+                                    <input
+                                      type="text"
+                                      value={search}
+                                      onChange={e => setSearch(e.target.value)}
+                                      placeholder="Search..."
+                                      className="w-full px-2 py-1 border rounded text-xs bg-background"
+                                      autoFocus
+                                    />
+                                  }
+                                >
                                   <SelectItem value="none" className="text-xs">None</SelectItem>
                                   <div className="px-2 py-1 text-xs text-gray-500">Processed Columns</div>
-                                  {processedColumns.map((procColumn) => (
+                                  {getFilteredOptions(processedColumns).map((procColumn) => (
                                     <SelectItem key={procColumn} value={procColumn} className="text-xs max-w-[300px] truncate">
                                       {procColumn}
                                     </SelectItem>
@@ -123,7 +142,7 @@ export function TemplateFillingPanel({
                                   {selectedTemplate.valueOptions && selectedTemplate.valueOptions[column.name] && selectedTemplate.valueOptions[column.name].length > 0 && (
                                     <>
                                       <div className="px-2 py-1 text-xs text-gray-500">Constants from Template Rows 5-500</div>
-                                      {selectedTemplate.valueOptions[column.name].map((val) => (
+                                      {getFilteredOptions(selectedTemplate.valueOptions[column.name]).map((val) => (
                                         <SelectItem key={val} value={`CONST:${val}`} className="text-xs max-w-[300px] truncate">
                                           {val}
                                         </SelectItem>

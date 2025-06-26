@@ -36,16 +36,17 @@ const SelectScrollUpButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
 >(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollUpButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
-    {...props}
-  >
-    <ChevronUp className="h-4 w-4" />
-  </SelectPrimitive.ScrollUpButton>
+  <div className={cn("flex items-center justify-center min-h-[32px]", className)}>
+    <SelectPrimitive.ScrollUpButton
+      ref={ref}
+      className={"flex items-center justify-center w-full h-full data-[state=visible]:block data-[state=hidden]:hidden"}
+      {...props}
+    >
+      <span className="bg-blue-50 rounded-full p-1 flex items-center justify-center">
+        <ChevronUp className="h-4 w-4 transition-opacity duration-100" />
+      </span>
+    </SelectPrimitive.ScrollUpButton>
+  </div>
 ))
 SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
 
@@ -53,24 +54,28 @@ const SelectScrollDownButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
 >(({ className, ...props }, ref) => (
-  <SelectPrimitive.ScrollDownButton
-    ref={ref}
-    className={cn(
-      "flex cursor-default items-center justify-center py-1",
-      className
-    )}
-    {...props}
-  >
-    <ChevronDown className="h-4 w-4" />
-  </SelectPrimitive.ScrollDownButton>
+  <div className={cn("flex items-center justify-center min-h-[32px]", className)}>
+    <SelectPrimitive.ScrollDownButton
+      ref={ref}
+      className={"flex items-center justify-center w-full h-full data-[state=visible]:block data-[state=hidden]:hidden"}
+      {...props}
+    >
+      <span className="bg-blue-50 rounded-full p-1 flex items-center justify-center">
+        <ChevronDown className="h-4 w-4 transition-opacity duration-100" />
+      </span>
+    </SelectPrimitive.ScrollDownButton>
+  </div>
 ))
-SelectScrollDownButton.displayName =
-  SelectPrimitive.ScrollDownButton.displayName
+SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName
+
+interface SelectContentProps extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content> {
+  searchBox?: React.ReactNode
+}
 
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
+  SelectContentProps
+>(({ className, children, position = "popper", searchBox, ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
       ref={ref}
@@ -83,6 +88,7 @@ const SelectContent = React.forwardRef<
       position={position}
       {...props}
     >
+      {searchBox && <div className="px-2 pt-2 pb-1 sticky top-0 z-10 bg-popover">{searchBox}</div>}
       <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className={cn(
