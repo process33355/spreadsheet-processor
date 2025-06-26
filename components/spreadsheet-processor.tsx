@@ -340,8 +340,8 @@ export function SpreadsheetProcessor() {
           parsedTemplates.map((template: any) => ({
             ...template,
             file: null, // Files can't be stored in localStorage
-            // Ensure columns are properly loaded
             columns: Array.isArray(template.columns) ? template.columns : [],
+            valueOptions: template.valueOptions ?? {},
           })),
         )
       } catch (e) {
@@ -395,10 +395,10 @@ export function SpreadsheetProcessor() {
           id: template.id,
           name: template.name,
           columns: template.columns,
+          valueOptions: template.valueOptions ?? {},
           uploadDateTime: template.uploadDateTime,
           lastEditedDateTime: template.lastEditedDateTime,
         }))
-
         const jsonData = JSON.stringify(templatesToSave)
         localStorage.setItem("spreadsheetTemplates", jsonData)
       } catch (error) {
