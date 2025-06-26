@@ -69,23 +69,23 @@ export function DataConfigPanel({
           {/* Data Preview */}
           <div className="grid gap-2">
             <Label>Input Data Preview</Label>
-            <div className="border rounded-md" style={{ width: "100%", maxWidth: "100%", overflowX: "hidden" }}>
+            <div className="border rounded-md bg-white" style={{ width: "100%", maxWidth: "100%", overflowX: "hidden" }}>
               <div className="h-[300px] overflow-auto" style={{ width: "100%", maxWidth: "100%" }}>
-                <Table>
+                <Table className="bg-white text-xs">
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="sticky left-0 bg-background z-20 w-[60px]">#</TableHead>
+                      <TableHead className="sticky left-0 bg-white z-20 w-[60px] px-2 py-1 text-xs">#</TableHead>
                       {rawData[headerRow]?.map((header, index) => (
-                        <TableHead key={index}>{header}</TableHead>
+                        <TableHead key={index} className="px-2 py-1 text-xs">{header}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {rawData.slice(headerRow + 1, headerRow + 11).map((row, rowIndex) => (
                       <TableRow key={rowIndex}>
-                        <TableCell className="sticky left-0 bg-background z-10">{rowIndex + headerRow + 1}</TableCell>
+                        <TableCell className="sticky left-0 bg-white z-10 px-2 py-1 text-xs">{rowIndex + headerRow + 1}</TableCell>
                         {row.map((cell, cellIndex) => (
-                          <TableCell key={cellIndex}>{cell}</TableCell>
+                          <TableCell key={cellIndex} className="px-2 py-1 text-xs">{cell}</TableCell>
                         ))}
                       </TableRow>
                     ))}
