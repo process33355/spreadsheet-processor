@@ -19,6 +19,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Download, Edit, Plus, Trash2 } from "lucide-react"
 import type { SupportSheet } from "./spreadsheet-processor"
+import { useDragAndDropFile } from "@/hooks/use-drag-and-drop-file"
 
 interface SupportSheetsManagerProps {
   supportSheets: SupportSheet[]
@@ -42,6 +43,17 @@ export function SupportSheetsManager({
   const [newSheetFile, setNewSheetFile] = useState<File | null>(null)
   const [editingSheet, setEditingSheet] = useState<SupportSheet | null>(null)
   const [previewSheet, setPreviewSheet] = useState<SupportSheet | null>(null)
+
+  const {
+    isDragging: isDraggingSheet,
+    handleDragOver: handleSheetDragOver,
+    handleDragLeave: handleSheetDragLeave,
+    handleDrop: handleSheetDrop,
+  } = useDragAndDropFile((files) => {
+    if (files.length > 0) {
+      setNewSheetFile(files[0])
+    }
+  })
 
   const handleAddSheet = () => {
     if (!newSheetName.trim() || !newSheetFile) return
@@ -108,7 +120,28 @@ export function SupportSheetsManager({
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="sheet-file">Upload File</Label>
-                    <Input id="sheet-file" type="file" onChange={handleFileChange} accept=".csv,.xlsx,.xls,.txt" />
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors bg-white ${
+                        isDraggingSheet ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
+                      }`}
+                      onDragOver={handleSheetDragOver}
+                      onDragLeave={handleSheetDragLeave}
+                      onDrop={handleSheetDrop}
+                      onClick={() => document.getElementById("sheet-file")?.click()}
+                    >
+                      <span className="block text-gray-600 mb-2">Drag and drop your file here, or click to browse</span>
+                      <span className="block text-xs text-gray-500">Supported formats: CSV, Excel, TXT</span>
+                      {newSheetFile && (
+                        <div className="mt-2 text-sm text-blue-700">Selected: {newSheetFile.name}</div>
+                      )}
+                      <input
+                        id="sheet-file"
+                        type="file"
+                        onChange={handleFileChange}
+                        accept=".csv,.xlsx,.xls,.txt"
+                        className="hidden"
+                      />
+                    </div>
                   </div>
                 </div>
                 <DialogFooter>
@@ -124,8 +157,26 @@ export function SupportSheetsManager({
           </div>
 
           {supportSheets.length === 0 ? (
-            <div className="border rounded-md p-8 text-center">
-              <p className="text-gray-500">No support sheets added yet</p>
+            <div
+              className={`border-2 border-dashed rounded-md p-8 text-center bg-white cursor-pointer transition-colors ${
+                isDraggingSheet ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
+              }`}
+              onDragOver={handleSheetDragOver}
+              onDragLeave={handleSheetDragLeave}
+              onDrop={e => {
+                handleSheetDrop(e);
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  const file = e.dataTransfer.files[0];
+                  setNewSheetFile(file);
+                  const name = file.name.replace(/\.[^/.]+$/, "");
+                  setNewSheetName(name);
+                  setIsAddDialogOpen(true);
+                }
+              }}
+              onClick={() => setIsAddDialogOpen(true)}
+            >
+              <span className="block text-gray-600 mb-2">No support sheets added yet</span>
+              <span className="block text-xs text-gray-500">Drag and drop a file here, or click to add</span>
             </div>
           ) : (
             <div className="grid gap-4">

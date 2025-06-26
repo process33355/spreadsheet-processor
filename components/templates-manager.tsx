@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, Edit, Plus, Trash2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import type { Template, TemplateColumn } from "./spreadsheet-processor"
+import { useDragAndDropFile } from "@/hooks/use-drag-and-drop-file"
 
 interface TemplatesManagerProps {
   templates: Template[]
@@ -56,7 +57,18 @@ export function TemplatesManager({
     constant: null,
   })
   const [error, setError] = useState<string | null>(null)
-  const [useSecondRowAsConstants, setUseSecondRowAsConstants] = useState(false)
+  const [useSecondRowAsConstants, setUseSecondRowAsConstants] = useState(true)
+
+  const {
+    isDragging: isDraggingTemplate,
+    handleDragOver: handleTemplateDragOver,
+    handleDragLeave: handleTemplateDragLeave,
+    handleDrop: handleTemplateDrop,
+  } = useDragAndDropFile((files) => {
+    if (files.length > 0) {
+      setNewTemplateFile(files[0])
+    }
+  })
 
   const handleAddTemplate = () => {
     if (!newTemplateName.trim() || !newTemplateFile) return
@@ -137,7 +149,28 @@ export function TemplatesManager({
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="template-file">Upload File</Label>
-                  <Input id="template-file" type="file" onChange={handleFileChange} accept=".csv,.xlsx,.xls,.txt" />
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors bg-white ${
+                      isDraggingTemplate ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
+                    }`}
+                    onDragOver={handleTemplateDragOver}
+                    onDragLeave={handleTemplateDragLeave}
+                    onDrop={handleTemplateDrop}
+                    onClick={() => document.getElementById("template-file")?.click()}
+                  >
+                    <span className="block text-gray-600 mb-2">Drag and drop your file here, or click to browse</span>
+                    <span className="block text-xs text-gray-500">Supported formats: CSV, Excel, TXT</span>
+                    {newTemplateFile && (
+                      <div className="mt-2 text-sm text-blue-700">Selected: {newTemplateFile.name}</div>
+                    )}
+                    <input
+                      id="template-file"
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".csv,.xlsx,.xls,.txt"
+                      className="hidden"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <input
@@ -162,8 +195,26 @@ export function TemplatesManager({
         </div>
 
         {templates.length === 0 ? (
-          <div className="border rounded-md p-8 text-center bg-white">
-            <p className="text-gray-500">No templates added yet</p>
+          <div
+            className={`border-2 border-dashed rounded-md p-8 text-center bg-white cursor-pointer transition-colors ${
+              isDraggingTemplate ? "border-primary bg-primary/5" : "border-gray-300 hover:border-primary"
+            }`}
+            onDragOver={handleTemplateDragOver}
+            onDragLeave={handleTemplateDragLeave}
+            onDrop={e => {
+              handleTemplateDrop(e);
+              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                const file = e.dataTransfer.files[0];
+                setNewTemplateFile(file);
+                const name = file.name.replace(/\.[^/.]+$/, "");
+                setNewTemplateName(name);
+                setIsAddDialogOpen(true);
+              }
+            }}
+            onClick={() => setIsAddDialogOpen(true)}
+          >
+            <span className="block text-gray-600 mb-2">No templates added yet</span>
+            <span className="block text-xs text-gray-500">Drag and drop a file here, or click to add</span>
           </div>
         ) : (
           <div className="grid gap-4">
