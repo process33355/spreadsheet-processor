@@ -80,28 +80,41 @@ export function DataConfigPanel({
               <div className="mt-2">
                 {/* Editable placeholder column names */}
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {placeholderHeaders.map((header, idx) => (
-                    <input
-                      key={idx}
-                      type="text"
-                      value={header}
-                      onChange={e => {
-                        const newHeaders = [...placeholderHeaders]
-                        newHeaders[idx] = e.target.value
-                        setPlaceholderHeaders(newHeaders)
-                      }}
-                      className="border rounded px-2 py-1 text-xs w-28"
-                    />
-                  ))}
+                  {placeholderHeaders.map((header, idx) => {
+                    const defaultName = `Column ${idx + 1}`
+                    const isCustom = header !== defaultName
+                    return (
+                      <input
+                        key={idx}
+                        type="text"
+                        value={header}
+                        onChange={e => {
+                          const newHeaders = [...placeholderHeaders]
+                          newHeaders[idx] = e.target.value
+                          setPlaceholderHeaders(newHeaders)
+                        }}
+                        className={`rounded px-2 py-1 text-xs w-28 border ${isCustom ? 'border-blue-500' : 'border-gray-300'}`}
+                      />
+                    )
+                  })}
                 </div>
                 {/* First 3 rows preview */}
                 <div className="overflow-x-auto border rounded bg-white">
                   <table className="text-xs w-full">
                     <thead>
                       <tr>
-                        {placeholderHeaders.map((header, idx) => (
-                          <th key={idx} className="px-2 py-1 border-b text-left">{header}</th>
-                        ))}
+                        {placeholderHeaders.map((header, idx) => {
+                          const defaultName = `Column ${idx + 1}`
+                          const isCustom = header !== defaultName
+                          return (
+                            <th
+                              key={idx}
+                              className={`px-2 py-1 border-b text-left ${isCustom ? 'border border-blue-500 text-blue-700 rounded' : ''}`}
+                            >
+                              {header}
+                            </th>
+                          )
+                        })}
                       </tr>
                     </thead>
                     <tbody>
@@ -142,18 +155,34 @@ export function DataConfigPanel({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="sticky left-0 bg-white z-20 w-[60px] px-2 py-1 text-xs">#</TableHead>
-                      {previewHeaders.map((header, index) => (
-                        <TableHead key={index} className="px-2 py-1 text-xs">{header}</TableHead>
-                      ))}
+                      {previewHeaders.map((header, index) => {
+                        const isSelected = selectedColumns.includes(header)
+                        return (
+                          <TableHead
+                            key={index}
+                            className={`px-2 py-1 text-xs ${isSelected ? 'bg-blue-100' : ''}`}
+                          >
+                            {header}
+                          </TableHead>
+                        )
+                      })}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {previewRows.slice(0, 10).map((row, rowIndex) => (
                       <TableRow key={rowIndex}>
                         <TableCell className="sticky left-0 bg-white z-10 px-2 py-1 text-xs">{rowIndex + 1}</TableCell>
-                        {previewHeaders.map((_, cellIndex) => (
-                          <TableCell key={cellIndex} className="px-2 py-1 text-xs">{row[cellIndex]}</TableCell>
-                        ))}
+                        {previewHeaders.map((header, cellIndex) => {
+                          const isSelected = selectedColumns.includes(header)
+                          return (
+                            <TableCell
+                              key={cellIndex}
+                              className={`px-2 py-1 text-xs ${isSelected ? 'bg-blue-100' : ''}`}
+                            >
+                              {row[cellIndex]}
+                            </TableCell>
+                          )
+                        })}
                       </TableRow>
                     ))}
                   </TableBody>
