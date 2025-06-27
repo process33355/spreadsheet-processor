@@ -50,7 +50,12 @@ export function TemplateFillingPanel({
       if (isConstantValue(mapped)) {
         const val = getConstantValue(mapped)
         newCustomConstants[column.name] = val
-        newCustomConstantInputs[column.name] = val
+        // Only set input if NOT a template constant
+        if (!selectedTemplate.valueOptions?.[column.name]?.includes(val)) {
+          newCustomConstantInputs[column.name] = val
+        } else {
+          newCustomConstantInputs[column.name] = ""
+        }
       } else {
         newCustomConstants[column.name] = ""
         newCustomConstantInputs[column.name] = ""
@@ -211,9 +216,9 @@ export function TemplateFillingPanel({
                                   <div>
                                     <Label className="text-xs font-medium text-gray-700">2. Template Constant</Label>
                                     <Select
-                                      value={isConstantValue(mappedValue) && valueOptions.includes(getConstantValue(mappedValue)) ? mappedValue || undefined : "none"}
+                                      value={isConstantValue(mappedValue) && valueOptions.includes(getConstantValue(mappedValue)) && !(customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "") ? mappedValue || undefined : "none"}
                                       onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
-                                      disabled={isCustomConstant || valueOptions.length === 0}
+                                      disabled={isConstantValue(mappedValue) && (!valueOptions.includes(getConstantValue(mappedValue)) || (customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "")) || valueOptions.length === 0}
                                     >
                                       <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs mt-1">
                                         <SelectValue placeholder={valueOptions.length === 0 ? "No constants available" : "Select template constant"} />
@@ -254,7 +259,7 @@ export function TemplateFillingPanel({
                                         disabled={isConstantValue(mappedValue) || column.constant !== null}
                                       />
                                       {/* Set/Remove button logic */}
-                                      {isConstantValue(mappedValue) && !valueOptions.includes(getConstantValue(mappedValue)) ? (
+                                      {isConstantValue(mappedValue) ? (
                                         <button
                                           type="button"
                                           className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 border border-red-200 hover:bg-red-200"
@@ -275,7 +280,7 @@ export function TemplateFillingPanel({
                                     </div>
                                     {/* Blue text always rendered, but only visible if set, with min height to prevent layout shift */}
                                     <div className="min-h-[20px]">
-                                      {isConstantValue(mappedValue) && !valueOptions.includes(getConstantValue(mappedValue)) && (
+                                      {isConstantValue(mappedValue) && (
                                         <span className="text-xs text-blue-700 block">Constant: {getConstantValue(mappedValue)}</span>
                                       )}
                                     </div>
