@@ -19,6 +19,8 @@ interface DataConfigPanelProps {
   onUsePlaceholderHeaderChange: (value: boolean) => void
   previewHeaders: string[]
   previewRows: string[][]
+  placeholderHeaders: string[]
+  setPlaceholderHeaders: (headers: string[]) => void
 }
 
 export function DataConfigPanel({
@@ -32,6 +34,8 @@ export function DataConfigPanel({
   onUsePlaceholderHeaderChange,
   previewHeaders,
   previewRows,
+  placeholderHeaders,
+  setPlaceholderHeaders,
 }: DataConfigPanelProps) {
   const handleHeaderRowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(e.target.value)
@@ -61,15 +65,58 @@ export function DataConfigPanel({
       <CardContent className="pt-6">
         <div className="grid gap-6">
           {/* Placeholder Header Option */}
-          <div className="flex items-center gap-2 mb-2">
-            <Checkbox
-              id="placeholder-header"
-              checked={usePlaceholderHeader}
-              onCheckedChange={onUsePlaceholderHeaderChange}
-            />
-            <label htmlFor="placeholder-header" className="text-sm font-medium leading-none">
-              Use placeholder header (Column 1, Column 2, ...)
-            </label>
+          <div className="flex flex-col gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="placeholder-header"
+                checked={usePlaceholderHeader}
+                onCheckedChange={onUsePlaceholderHeaderChange}
+              />
+              <label htmlFor="placeholder-header" className="text-sm font-medium leading-none">
+                Use placeholder header (Column 1, Column 2, ...)
+              </label>
+            </div>
+            {usePlaceholderHeader && (
+              <div className="mt-2">
+                {/* Editable placeholder column names */}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {placeholderHeaders.map((header, idx) => (
+                    <input
+                      key={idx}
+                      type="text"
+                      value={header}
+                      onChange={e => {
+                        const newHeaders = [...placeholderHeaders]
+                        newHeaders[idx] = e.target.value
+                        setPlaceholderHeaders(newHeaders)
+                      }}
+                      className="border rounded px-2 py-1 text-xs w-28"
+                    />
+                  ))}
+                </div>
+                {/* First 3 rows preview */}
+                <div className="overflow-x-auto border rounded bg-white">
+                  <table className="text-xs w-full">
+                    <thead>
+                      <tr>
+                        {placeholderHeaders.map((header, idx) => (
+                          <th key={idx} className="px-2 py-1 border-b text-left">{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rawData.slice(0, 3).map((row, rowIdx) => (
+                        <tr key={rowIdx}>
+                          {placeholderHeaders.map((_, colIdx) => (
+                            <td key={colIdx} className="px-2 py-1 border-b">{row[colIdx]}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
           {/* Header Row Selection - Moved to the top */}
           <div className="grid gap-2 w-[200px]">

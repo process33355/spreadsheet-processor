@@ -143,6 +143,7 @@ export function SpreadsheetProcessor() {
   const [formulaErrorCount, setFormulaErrorCount] = useState(0)
   const [lastFormulaError, setLastFormulaError] = useState<string | null>(null)
   const [usePlaceholderHeader, setUsePlaceholderHeader] = useState(false)
+  const [placeholderHeaders, setPlaceholderHeaders] = useState<string[]>([])
 
   // Function to check for missing lookup values across all XLOOKUP transformations
   const checkForMissingLookupValues = useCallback(() => {
@@ -518,7 +519,7 @@ export function SpreadsheetProcessor() {
       let headers: string[] = []
       let headerRow = activePreset.headerRow
       if (usePlaceholderHeader) {
-        headers = allColumns
+        headers = placeholderHeaders
         headerRow = -1 // so we don't skip any rows
       } else {
         headers = firstFile.rawData[headerRow]
@@ -796,7 +797,7 @@ export function SpreadsheetProcessor() {
     } finally {
       setIsProcessing(false)
     }
-  }, [activePreset, previewMode, inputFiles, supportSheets, templates, validationError])
+  }, [activePreset, previewMode, inputFiles, supportSheets, templates, validationError, placeholderHeaders])
 
   // Set up preview refresh timer
   useEffect(() => {
@@ -1297,6 +1298,7 @@ export function SpreadsheetProcessor() {
     if (inputFiles.length === 0) {
       setAllColumns([])
       setActivePreset((prev) => ({ ...prev, selectedColumns: [] }))
+      setPlaceholderHeaders([])
       return
     }
     let newColumns: string[] = []
@@ -1304,8 +1306,10 @@ export function SpreadsheetProcessor() {
       // Generate placeholder headers based on the widest row
       const maxCols = inputFiles[0].rawData.reduce((max, row) => Math.max(max, row.length), 0)
       newColumns = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`)
+      setPlaceholderHeaders(newColumns)
     } else {
       newColumns = inputFiles[0].rawData.length > 0 ? inputFiles[0].rawData[activePreset.headerRow] : []
+      setPlaceholderHeaders([])
     }
     setAllColumns(newColumns)
     setActivePreset((prev) => ({ ...prev, selectedColumns: newColumns }))
@@ -1313,12 +1317,20 @@ export function SpreadsheetProcessor() {
     // if (!usePlaceholderHeader) setActivePreset((prev) => ({ ...prev, headerRow: 0 }))
   }, [usePlaceholderHeader, inputFiles])
 
+  // When placeholderHeaders changes in placeholder mode, update allColumns and selectedColumns
+  useEffect(() => {
+    if (usePlaceholderHeader && placeholderHeaders.length > 0) {
+      setAllColumns(placeholderHeaders)
+      setActivePreset((prev) => ({ ...prev, selectedColumns: placeholderHeaders }))
+    }
+  }, [placeholderHeaders, usePlaceholderHeader])
+
   // Compute preview headers and rows for DataConfigPanel
   let previewHeaders: string[] = []
   let previewRows: string[][] = []
   if (inputFiles.length > 0) {
     if (usePlaceholderHeader) {
-      previewHeaders = allColumns
+      previewHeaders = placeholderHeaders
       previewRows = inputFiles[0].rawData.slice(0, 10)
     } else {
       const headerRow = activePreset.headerRow
@@ -1428,6 +1440,8 @@ export function SpreadsheetProcessor() {
                   onUsePlaceholderHeaderChange={setUsePlaceholderHeader}
                   previewHeaders={previewHeaders}
                   previewRows={previewRows}
+                  placeholderHeaders={placeholderHeaders}
+                  setPlaceholderHeaders={setPlaceholderHeaders}
                 />
               </div>
 
