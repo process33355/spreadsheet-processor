@@ -15,6 +15,10 @@ interface DataConfigPanelProps {
   selectedColumns: string[]
   onHeaderRowChange: (row: number) => void
   onSelectedColumnsChange: (columns: string[]) => void
+  usePlaceholderHeader: boolean
+  onUsePlaceholderHeaderChange: (value: boolean) => void
+  previewHeaders: string[]
+  previewRows: string[][]
 }
 
 export function DataConfigPanel({
@@ -24,6 +28,10 @@ export function DataConfigPanel({
   selectedColumns,
   onHeaderRowChange,
   onSelectedColumnsChange,
+  usePlaceholderHeader,
+  onUsePlaceholderHeaderChange,
+  previewHeaders,
+  previewRows,
 }: DataConfigPanelProps) {
   const handleHeaderRowChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseInt(e.target.value)
@@ -52,8 +60,19 @@ export function DataConfigPanel({
     <Card className="bg-blue-50">
       <CardContent className="pt-6">
         <div className="grid gap-6">
+          {/* Placeholder Header Option */}
+          <div className="flex items-center gap-2 mb-2">
+            <Checkbox
+              id="placeholder-header"
+              checked={usePlaceholderHeader}
+              onCheckedChange={onUsePlaceholderHeaderChange}
+            />
+            <label htmlFor="placeholder-header" className="text-sm font-medium leading-none">
+              Use placeholder header (Column 1, Column 2, ...)
+            </label>
+          </div>
           {/* Header Row Selection - Moved to the top */}
-          <div className="grid gap-2">
+          <div className="grid gap-2 w-[200px]">
             <Label htmlFor="header-row">Header Row (0-based index)</Label>
             <Input
               id="header-row"
@@ -63,6 +82,7 @@ export function DataConfigPanel({
               value={headerRow}
               onChange={handleHeaderRowChange}
               className="w-full max-w-xs"
+              disabled={usePlaceholderHeader}
             />
           </div>
 
@@ -75,17 +95,17 @@ export function DataConfigPanel({
                   <TableHeader>
                     <TableRow>
                       <TableHead className="sticky left-0 bg-white z-20 w-[60px] px-2 py-1 text-xs">#</TableHead>
-                      {rawData[headerRow]?.map((header, index) => (
+                      {previewHeaders.map((header, index) => (
                         <TableHead key={index} className="px-2 py-1 text-xs">{header}</TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {rawData.slice(headerRow + 1, headerRow + 11).map((row, rowIndex) => (
+                    {previewRows.slice(0, 10).map((row, rowIndex) => (
                       <TableRow key={rowIndex}>
-                        <TableCell className="sticky left-0 bg-white z-10 px-2 py-1 text-xs">{rowIndex + headerRow + 1}</TableCell>
-                        {row.map((cell, cellIndex) => (
-                          <TableCell key={cellIndex} className="px-2 py-1 text-xs">{cell}</TableCell>
+                        <TableCell className="sticky left-0 bg-white z-10 px-2 py-1 text-xs">{rowIndex + 1}</TableCell>
+                        {previewHeaders.map((_, cellIndex) => (
+                          <TableCell key={cellIndex} className="px-2 py-1 text-xs">{row[cellIndex]}</TableCell>
                         ))}
                       </TableRow>
                     ))}
