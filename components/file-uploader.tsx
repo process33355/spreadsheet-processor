@@ -87,7 +87,7 @@ export function FileUploader({ onFilesUpload, currentFiles, maxFiles = 12, maxTo
   }
 
   return (
-    <Card className="bg-blue-50">
+    <Card className="bg-emerald-50">
       <CardHeader>
         <CardTitle>Upload Spreadsheets</CardTitle>
         <CardDescription>

@@ -114,7 +114,7 @@ export function TemplatesManager({
   }
 
   return (
-    <Card className="bg-blue-50 w-full max-w-full overflow-x-auto">
+    <Card className="bg-cyan-50 w-full max-w-full overflow-x-auto">
       <CardContent className="p-4 w-full max-w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
           <h3 className="text-lg font-semibold">

@@ -89,7 +89,7 @@ export function SupportSheetsManager({
   }
 
   return (
-    <Card className="bg-blue-50">
+    <Card className="bg-cyan-50">
       <CardContent className="pt-6">
         <div className="grid gap-6">
           <div className="flex justify-between items-center">

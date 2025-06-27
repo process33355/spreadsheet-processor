@@ -183,7 +183,7 @@ export function PresetManager({
   }
 
   return (
-    <Card className="bg-blue-50">
+    <Card className="bg-emerald-50">
       <CardHeader>
         <CardTitle>Presets</CardTitle>
         <CardDescription>Save and load data processing configurations</CardDescription>

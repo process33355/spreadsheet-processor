@@ -111,7 +111,7 @@ export function TemplateFillingPanel({
   }
 
   return (
-    <Card className="bg-blue-50">
+    <Card className="bg-indigo-50">
       <CardContent className="pt-6">
         <div className="grid gap-6">
           <div className="grid gap-2">
