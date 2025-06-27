@@ -148,7 +148,8 @@ export function TemplateFillingPanel({
                         <TableHead className="sticky left-0 bg-background z-20 min-w-[160px]">Column Type</TableHead>
                         {selectedTemplate.columns.map((column) => {
                           const mappedValue = getMappedColumn(column.name);
-                          const isCustomConstant = !!customConstants[column.name] && customConstants[column.name].trim() !== "";
+                          const isProcessedColumn = mappedValue && !isConstantValue(mappedValue);
+                          const isCustomConstant = !!customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "";
                           const valueOptions = selectedTemplate?.valueOptions?.[column.name] || [];
                           return (
                             <TableHead key={column.name} className="min-w-[180px]">
@@ -170,7 +171,8 @@ export function TemplateFillingPanel({
                         </TableCell>
                         {selectedTemplate?.columns?.map((column) => {
                           const mappedValue = getMappedColumn(column.name);
-                          const isCustomConstant = !!customConstants[column.name] && customConstants[column.name].trim() !== "";
+                          const isProcessedColumn = mappedValue && !isConstantValue(mappedValue);
+                          const isCustomConstant = !!customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "";
                           const valueOptions = selectedTemplate?.valueOptions?.[column.name] || [];
                           return (
                             <TableCell key={column.name}>
@@ -184,7 +186,7 @@ export function TemplateFillingPanel({
                                     <Select
                                       value={isConstantValue(mappedValue) ? "none" : (mappedValue || "none")}
                                       onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
-                                      disabled={isCustomConstant}
+                                      disabled={isConstantValue(mappedValue) || !!isProcessedColumn}
                                     >
                                       <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs mt-1">
                                         <SelectValue placeholder="Select processed column" />
@@ -213,12 +215,12 @@ export function TemplateFillingPanel({
                                   </div>
 
                                   {/* Option 2: Template Constant - Always show */}
-                                  <div>
+                                  <div className={!!isProcessedColumn ? "opacity-50 pointer-events-none" : ""}>
                                     <Label className="text-xs font-medium text-gray-700">2. Template Constant</Label>
                                     <Select
                                       value={isConstantValue(mappedValue) && valueOptions.includes(getConstantValue(mappedValue)) && !(customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "") ? mappedValue || undefined : "none"}
                                       onValueChange={(value) => handleColumnMappingChange(column.name, value === "none" ? null : value)}
-                                      disabled={isConstantValue(mappedValue) && (!valueOptions.includes(getConstantValue(mappedValue)) || (customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "")) || valueOptions.length === 0}
+                                      disabled={isConstantValue(mappedValue) && (!valueOptions.includes(getConstantValue(mappedValue)) || (customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "")) || valueOptions.length === 0 || !!isProcessedColumn}
                                     >
                                       <SelectTrigger className="min-w-[180px] max-w-[320px] text-xs mt-1">
                                         <SelectValue placeholder={valueOptions.length === 0 ? "No constants available" : "Select template constant"} />
@@ -247,7 +249,7 @@ export function TemplateFillingPanel({
                                   </div>
 
                                   {/* Option 3: Custom Constant */}
-                                  <div>
+                                  <div className={!!isProcessedColumn ? "opacity-50 pointer-events-none" : ""}>
                                     <Label className="text-xs font-medium text-gray-700">3. Custom Constant</Label>
                                     <div className="flex gap-2 items-center mt-1">
                                       <input
@@ -256,10 +258,31 @@ export function TemplateFillingPanel({
                                         placeholder="Type custom constant..."
                                         value={customConstantInputs[column.name] || ""}
                                         onChange={e => handleCustomConstantInputChange(column.name, e.target.value)}
-                                        disabled={isConstantValue(mappedValue) || column.constant !== null}
+                                        disabled={isConstantValue(mappedValue) || column.constant !== null || !!isProcessedColumn}
                                       />
-                                      {/* Set/Remove button logic */}
-                                      {isConstantValue(mappedValue) ? (
+                                      {/* Set button logic: show if not currently a constant and input is non-empty */}
+                                      {!isConstantValue(mappedValue) && !(!!isProcessedColumn) && customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "" && (
+                                        <button
+                                          type="button"
+                                          className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200"
+                                          onClick={() => handleSetCustomConstant(column.name)}
+                                        >
+                                          Set
+                                        </button>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Blue text and Remove button, spaced lower */}
+                                  <div className="flex items-center gap-2 mt-4 min-h-[24px]">
+                                    {isConstantValue(mappedValue) && !isProcessedColumn && (
+                                      <>
+                                        <span className="text-xs text-blue-700 block">
+                                          {valueOptions.includes(getConstantValue(mappedValue)) ?
+                                            `Template Constant: ${getConstantValue(mappedValue)}` :
+                                            `Custom Constant: ${getConstantValue(mappedValue)}`
+                                          }
+                                        </span>
                                         <button
                                           type="button"
                                           className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 border border-red-200 hover:bg-red-200"
@@ -267,23 +290,20 @@ export function TemplateFillingPanel({
                                         >
                                           Remove
                                         </button>
-                                      ) : (
+                                      </>
+                                    )}
+                                    {isProcessedColumn && (
+                                      <>
+                                        <span className="text-xs text-blue-700 block">Processed column: {mappedValue}</span>
                                         <button
                                           type="button"
-                                          className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 border border-blue-200 hover:bg-blue-200"
-                                          onClick={() => handleSetCustomConstant(column.name)}
-                                          disabled={!(customConstantInputs[column.name] && customConstantInputs[column.name].trim() !== "")}
+                                          className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 border border-red-200 hover:bg-red-200"
+                                          onClick={() => handleRemoveCustomConstant(column.name)}
                                         >
-                                          Set
+                                          Remove
                                         </button>
-                                      )}
-                                    </div>
-                                    {/* Blue text always rendered, but only visible if set, with min height to prevent layout shift */}
-                                    <div className="min-h-[20px]">
-                                      {isConstantValue(mappedValue) && (
-                                        <span className="text-xs text-blue-700 block">Constant: {getConstantValue(mappedValue)}</span>
-                                      )}
-                                    </div>
+                                      </>
+                                    )}
                                   </div>
                                 </div>
                               )}
