@@ -274,8 +274,8 @@ export function TemplateFillingPanel({
                                   </div>
 
                                   {/* Blue text and Remove button, spaced lower */}
-                                  <div className="flex items-center gap-2 mt-4 min-h-[24px]">
-                                    {isConstantValue(mappedValue) && !isProcessedColumn && (
+                                  <div className="flex items-center gap-2 mt-4 min-h-[36px]">
+                                    {isConstantValue(mappedValue) && !isProcessedColumn ? (
                                       <>
                                         <span className="text-xs text-blue-700 block">
                                           {valueOptions.includes(getConstantValue(mappedValue)) ?
@@ -291,8 +291,7 @@ export function TemplateFillingPanel({
                                           Remove
                                         </button>
                                       </>
-                                    )}
-                                    {isProcessedColumn && (
+                                    ) : isProcessedColumn ? (
                                       <>
                                         <span className="text-xs text-blue-700 block">Processed column: {mappedValue}</span>
                                         <button
@@ -303,6 +302,11 @@ export function TemplateFillingPanel({
                                           Remove
                                         </button>
                                       </>
+                                    ) : (
+                                      // Always reserve space to prevent layout shift
+                                      <span className="text-xs block" style={{ visibility: 'hidden' }}>
+                                        Template Constant: 
+                                      </span>
                                     )}
                                   </div>
                                 </div>
