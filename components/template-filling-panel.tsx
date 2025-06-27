@@ -139,7 +139,7 @@ export function TemplateFillingPanel({
               </p>
 
               {/* Fixed height container with vertical scrolling */}
-              <div className="border rounded-md h-[400px] overflow-y-auto">
+              <div className="border rounded-md h-[400px] overflow-y-auto max-h-[333px]">
                 {/* Fixed width container with horizontal scrolling */}
                 <div className="overflow-x-auto">
                   <Table>
@@ -160,14 +160,14 @@ export function TemplateFillingPanel({
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell className="font-medium sticky left-0 bg-background z-10 min-w-[160px]">
-                          Mapping Options<br/>
-                          <span className="text-xs text-gray-500 font-normal">
-                            1. Processed Column<br/>
-                            2. Template Constant<br/>
-                            3. Custom Constant
-                          </span>
+                      <TableRow className="align-top">
+                        <TableCell className="font-medium sticky left-0 bg-background z-10 min-w-[160px] align-top pt-4 pb-2 pr-2">
+                          <div className="mb-1">Mapping Options</div>
+                          <div className="text-xs text-gray-500 font-normal leading-tight space-y-0.5">
+                            <div>1. Processed Column</div>
+                            <div>2. Template Constant</div>
+                            <div>3. Custom Constant</div>
+                          </div>
                         </TableCell>
                         {selectedTemplate?.columns?.map((column) => {
                           const mappedValue = getMappedColumn(column.name);
