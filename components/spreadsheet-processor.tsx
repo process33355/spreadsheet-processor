@@ -1037,8 +1037,8 @@ export function SpreadsheetProcessor() {
   }
 
   const handleAddSupportSheet = async (file: File, name: string) => {
-    if (file.size > 20 * 1024 * 1024) {
-      alert("File size exceeds the 20MB limit")
+    if (file.size > 100 * 1024 * 1024) {
+      alert("File size exceeds the 100MB limit")
       return
     }
 
@@ -1114,8 +1114,8 @@ export function SpreadsheetProcessor() {
 
   // Template management functions
   const handleAddTemplate = async (file: File, name: string, useSecondRowAsConstants: boolean) => {
-    if (file.size > 20 * 1024 * 1024) {
-      alert("File size exceeds the 20MB limit")
+    if (file.size > 100 * 1024 * 1024) {
+      alert("File size exceeds the 100MB limit")
       return
     }
 
