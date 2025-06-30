@@ -15,7 +15,7 @@ interface FileUploaderProps {
   maxTotalSize?: number // in MB
 }
 
-export function FileUploader({ onFilesUpload, currentFiles, maxFiles = 12, maxTotalSize = 20 }: FileUploaderProps) {
+export function FileUploader({ onFilesUpload, currentFiles, maxFiles = 12, maxTotalSize = 100 }: FileUploaderProps) {
   const [isDragging, setIsDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
