@@ -21,7 +21,7 @@ export type Preset = {
   id: string
   name: string
   headerRow: number
-  selectedColumns: string[]
+  selectedColumns: number[]
   filters: Filter[]
   transformations: Transformation[]
   includeSourceFileColumn: boolean
@@ -568,9 +568,9 @@ export function SpreadsheetProcessor() {
         }
 
         // Add selected columns
-        activePreset.selectedColumns.forEach((col) => {
-          if (row.hasOwnProperty(col)) {
-            filteredRow[col] = row[col]
+        activePreset.selectedColumns.forEach((colIndex) => {
+          if (row.hasOwnProperty(headers[colIndex])) {
+            filteredRow[headers[colIndex]] = row[headers[colIndex]]
           }
         })
 
@@ -862,7 +862,7 @@ export function SpreadsheetProcessor() {
         // Update selected columns in the active preset
         setActivePreset((prev) => ({
           ...prev,
-          selectedColumns: firstFileHeaders,
+          selectedColumns: firstFileHeaders.map((_, idx) => idx),
         }))
       }
     } catch (error) {
@@ -949,7 +949,7 @@ export function SpreadsheetProcessor() {
         id: "default",
         name: "Default Preset",
         headerRow: 0,
-        selectedColumns: allColumns,
+        selectedColumns: allColumns.map((_, idx) => idx),
         filters: [],
         transformations: [],
         includeSourceFileColumn: true,
@@ -982,7 +982,7 @@ export function SpreadsheetProcessor() {
         id: "default",
         name: "Default Preset",
         headerRow: 0,
-        selectedColumns: allColumns,
+        selectedColumns: allColumns.map((_, idx) => idx),
         filters: [],
         transformations: [],
         includeSourceFileColumn: true,
@@ -1293,7 +1293,7 @@ export function SpreadsheetProcessor() {
   // Check for missing lookup values
   const missingLookupInfo = checkForMissingLookupValues()
 
-  // Update columns and selectedColumns when usePlaceholderHeader or inputFiles changes
+  // Update columns and selectedColumns when usePlaceholderHeader, inputFiles, or headerRow changes
   useEffect(() => {
     if (inputFiles.length === 0) {
       setAllColumns([])
@@ -1308,20 +1308,20 @@ export function SpreadsheetProcessor() {
       newColumns = Array.from({ length: maxCols }, (_, i) => `Column ${i + 1}`)
       setPlaceholderHeaders(newColumns)
     } else {
-      newColumns = inputFiles[0].rawData.length > 0 ? inputFiles[0].rawData[activePreset.headerRow] : []
+      // Use the header row from the active preset
+      const headerRow = activePreset.headerRow
+      newColumns = inputFiles[0].rawData.length > headerRow ? inputFiles[0].rawData[headerRow] : []
       setPlaceholderHeaders([])
     }
     setAllColumns(newColumns)
-    setActivePreset((prev) => ({ ...prev, selectedColumns: newColumns }))
-    // Optionally, reset headerRow to 0 if switching off placeholder
-    // if (!usePlaceholderHeader) setActivePreset((prev) => ({ ...prev, headerRow: 0 }))
-  }, [usePlaceholderHeader, inputFiles])
+    setActivePreset((prev) => ({ ...prev, selectedColumns: newColumns.map((_, idx) => idx) }))
+  }, [usePlaceholderHeader, inputFiles, activePreset.headerRow])
 
   // When placeholderHeaders changes in placeholder mode, update allColumns and selectedColumns
   useEffect(() => {
     if (usePlaceholderHeader && placeholderHeaders.length > 0) {
       setAllColumns(placeholderHeaders)
-      setActivePreset((prev) => ({ ...prev, selectedColumns: placeholderHeaders }))
+      setActivePreset((prev) => ({ ...prev, selectedColumns: placeholderHeaders.map((_, idx) => idx) }))
     }
   }, [placeholderHeaders, usePlaceholderHeader])
 
@@ -1452,8 +1452,8 @@ export function SpreadsheetProcessor() {
                 <ProcessingPanel
                   allColumns={
                     activePreset.includeSourceFileColumn
-                      ? ["Source File", ...activePreset.selectedColumns]
-                      : activePreset.selectedColumns
+                      ? ["Source File", ...allColumns]
+                      : allColumns
                   }
                   supportSheets={supportSheets}
                   filters={activePreset.filters}

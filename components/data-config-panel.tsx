@@ -12,9 +12,9 @@ interface DataConfigPanelProps {
   rawData: string[][]
   allColumns: string[]
   headerRow: number
-  selectedColumns: string[]
+  selectedColumns: number[]
   onHeaderRowChange: (row: number) => void
-  onSelectedColumnsChange: (columns: string[]) => void
+  onSelectedColumnsChange: (columns: number[]) => void
   usePlaceholderHeader: boolean
   onUsePlaceholderHeaderChange: (value: boolean) => void
   previewHeaders: string[]
@@ -44,11 +44,11 @@ export function DataConfigPanel({
     }
   }
 
-  const toggleColumnSelection = (column: string) => {
-    if (selectedColumns.includes(column)) {
-      onSelectedColumnsChange(selectedColumns.filter((col) => col !== column))
+  const toggleColumnSelection = (colIdx: number) => {
+    if (selectedColumns.includes(colIdx)) {
+      onSelectedColumnsChange(selectedColumns.filter((idx) => idx !== colIdx))
     } else {
-      onSelectedColumnsChange([...selectedColumns, column])
+      onSelectedColumnsChange([...selectedColumns, colIdx])
     }
   }
 
@@ -56,7 +56,7 @@ export function DataConfigPanel({
     if (selectedColumns.length === allColumns.length) {
       onSelectedColumnsChange([])
     } else {
-      onSelectedColumnsChange([...allColumns])
+      onSelectedColumnsChange(allColumns.map((_, idx) => idx))
     }
   }
 
@@ -156,7 +156,7 @@ export function DataConfigPanel({
                     <TableRow>
                       <TableHead className="sticky left-0 bg-white z-20 w-[60px] px-2 py-1 text-xs">#</TableHead>
                       {previewHeaders.map((header, index) => {
-                        const isSelected = selectedColumns.includes(header)
+                        const isSelected = selectedColumns.includes(index)
                         return (
                           <TableHead
                             key={index}
@@ -173,7 +173,7 @@ export function DataConfigPanel({
                       <TableRow key={rowIndex}>
                         <TableCell className="sticky left-0 bg-white z-10 px-2 py-1 text-xs">{rowIndex + 1}</TableCell>
                         {previewHeaders.map((header, cellIndex) => {
-                          const isSelected = selectedColumns.includes(header)
+                          const isSelected = selectedColumns.includes(cellIndex)
                           return (
                             <TableCell
                               key={cellIndex}
@@ -212,15 +212,15 @@ export function DataConfigPanel({
 
             <div className="border rounded-md h-[300px] overflow-y-auto">
               <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {allColumns.map((column) => (
-                  <div key={column} className="flex items-center space-x-2">
+                {allColumns.map((column, idx) => (
+                  <div key={idx} className="flex items-center space-x-2">
                     <Checkbox
-                      id={`column-${column}`}
-                      checked={selectedColumns.includes(column)}
-                      onCheckedChange={() => toggleColumnSelection(column)}
+                      id={`column-${idx}`}
+                      checked={selectedColumns.includes(idx)}
+                      onCheckedChange={() => toggleColumnSelection(idx)}
                     />
                     <label
-                      htmlFor={`column-${column}`}
+                      htmlFor={`column-${idx}`}
                       className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 truncate"
                     >
                       {column}
