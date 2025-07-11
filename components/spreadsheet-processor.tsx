@@ -534,23 +534,31 @@ export function SpreadsheetProcessor() {
 
         // If using placeholder header, treat all rows as data
         const dataRows = usePlaceholderHeader ? inputFile.rawData : inputFile.rawData.slice(headerRow + 1)
-        const fileData = dataRows.map((row) => {
-          const obj: Record<string, any> = {}
+        const fileData = dataRows
+          .map((row) => {
+            const obj: Record<string, any> = {}
 
-          // Add source file column if enabled
-          if (activePreset.includeSourceFileColumn) {
-            obj["Source File"] = inputFile.file.name
-          }
-
-          // Add data columns
-          headers.forEach((header, index) => {
-            if (header && index < row.length) {
-              obj[header] = row[index]
+            // Add source file column if enabled
+            if (activePreset.includeSourceFileColumn) {
+              obj["Source File"] = inputFile.file.name
             }
-          })
 
-          return obj
-        })
+            // Add data columns
+            headers.forEach((header, index) => {
+              if (header && index < row.length) {
+                obj[header] = row[index]
+              }
+            })
+
+            return obj
+          })
+          // Filter out rows where all data columns are empty or whitespace
+          .filter((obj) => {
+            // Exclude Source File column from the check
+            return headers.some(
+              (header) => obj[header] !== undefined && String(obj[header]).trim() !== ""
+            )
+          })
 
         allDataWithHeaders = [...allDataWithHeaders, ...fileData]
       })
